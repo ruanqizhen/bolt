@@ -1,0 +1,178 @@
+[
+  {
+    "id": "scout_drone", "tier": "scout", "name": "Scout Drone",
+    "hp": 3, "speed": 6, "score": 100,
+    "attack": { "type": "straight", "cooldown": 1.2, "bullets": 1, "speed": 8 },
+    "ai": "linear",
+    "drop": { "medal": 0.1, "powerup": 0.05, "bomb": 0.01 },
+    "size": 0.4, "color": "0x88aa88"
+  },
+  {
+    "id": "serpent_drone", "tier": "scout", "name": "Serpent Drone",
+    "hp": 4, "speed": 5, "score": 120,
+    "attack": { "type": "fan", "cooldown": 1.5, "bullets": 3, "speed": 7, "angle": 30 },
+    "ai": "sine",
+    "drop": { "medal": 0.15, "powerup": 0.05, "bomb": 0.01 },
+    "size": 0.4, "color": "0x77bb77"
+  },
+  {
+    "id": "dive_scout", "tier": "scout", "name": "Dive Scout",
+    "hp": 5, "speed": 4, "score": 150,
+    "attack": { "type": "straight", "cooldown": 0.8, "bullets": 2, "speed": 9 },
+    "ai": "chase",
+    "drop": { "medal": 0.15, "powerup": 0.08, "bomb": 0.02 },
+    "size": 0.45, "color": "0x669966"
+  },
+  {
+    "id": "interceptor", "tier": "fighter", "name": "Interceptor",
+    "hp": 12, "speed": 7, "score": 200,
+    "attack": { "type": "burst", "cooldown": 1.5, "bullets": 3, "speed": 9 },
+    "ai": "chase",
+    "drop": { "medal": 0.2, "powerup": 0.1, "bomb": 0.02 },
+    "size": 0.5, "color": "0xcc6644"
+  },
+  {
+    "id": "heavy_fighter", "tier": "fighter", "name": "Heavy Fighter",
+    "hp": 20, "speed": 5, "score": 300,
+    "attack": { "type": "fan", "cooldown": 2.0, "bullets": 5, "speed": 7, "angle": 50 },
+    "ai": "patrol",
+    "drop": { "medal": 0.2, "powerup": 0.15, "bomb": 0.03 },
+    "size": 0.6, "color": "0xcc4444"
+  },
+  {
+    "id": "laser_fighter", "tier": "fighter", "name": "Laser Fighter",
+    "hp": 18, "speed": 5, "score": 280,
+    "attack": { "type": "straight", "cooldown": 3.0, "bullets": 1, "speed": 15 },
+    "ai": "patrol",
+    "drop": { "medal": 0.2, "powerup": 0.1, "bomb": 0.02 },
+    "size": 0.55, "color": "0x4466cc"
+  },
+  {
+    "id": "missile_fighter", "tier": "fighter", "name": "Missile Fighter",
+    "hp": 15, "speed": 6, "score": 250,
+    "attack": { "type": "homing", "cooldown": 2.5, "bullets": 1, "speed": 5, "steer": 0.1 },
+    "ai": "chase",
+    "drop": { "medal": 0.2, "powerup": 0.1, "bomb": 0.03 },
+    "size": 0.5, "color": "0xaa6644"
+  },
+  {
+    "id": "parasite_tank", "tier": "heavy", "name": "Parasite Tank",
+    "hp": 40, "speed": 2, "score": 400,
+    "attack": { "type": "fan", "cooldown": 1.0, "bullets": 2, "speed": 6, "angle": 20 },
+    "ai": "linear",
+    "drop": { "medal": 0.3, "powerup": 0.2, "bomb": 0.05 },
+    "size": 0.8, "color": "0x886644"
+  },
+  {
+    "id": "artillery_carrier", "tier": "heavy", "name": "Artillery Carrier",
+    "hp": 60, "speed": 1.5, "score": 500,
+    "attack": { "type": "radial", "cooldown": 2.0, "bullets": 8, "speed": 5 },
+    "ai": "linear",
+    "drop": { "medal": 0.3, "powerup": 0.2, "bomb": 0.05 },
+    "size": 0.9, "color": "0x776633"
+  },
+  {
+    "id": "missile_truck", "tier": "heavy", "name": "Missile Truck",
+    "hp": 50, "speed": 1.8, "score": 450,
+    "attack": { "type": "homing", "cooldown": 3.0, "bullets": 4, "speed": 5, "steer": 0.08 },
+    "ai": "linear",
+    "drop": { "medal": 0.3, "powerup": 0.15, "bomb": 0.05 },
+    "size": 0.85, "color": "0x665533"
+  },
+  {
+    "id": "walker_mech", "tier": "heavy", "name": "Walker Mech",
+    "hp": 120, "speed": 1, "score": 800,
+    "attack": { "type": "fan", "cooldown": 0.5, "bullets": 3, "speed": 8, "angle": 25 },
+    "ai": "linear",
+    "drop": { "medal": 0.4, "powerup": 0.25, "bomb": 0.08 },
+    "size": 1.0, "color": "0x554433"
+  },
+  {
+    "id": "aa_turret", "tier": "turret", "name": "AA Turret",
+    "hp": 50, "speed": 0, "score": 350,
+    "attack": { "type": "burst", "cooldown": 0.8, "bullets": 2, "speed": 10 },
+    "ai": "stationary",
+    "drop": { "medal": 0.3, "powerup": 0.15, "bomb": 0.03 },
+    "size": 0.6, "color": "0x666666"
+  },
+  {
+    "id": "laser_tower", "tier": "turret", "name": "Laser Tower",
+    "hp": 80, "speed": 0, "score": 500,
+    "attack": { "type": "straight", "cooldown": 3.5, "bullets": 1, "speed": 18 },
+    "ai": "stationary",
+    "drop": { "medal": 0.3, "powerup": 0.2, "bomb": 0.05 },
+    "size": 0.55, "color": "0x4455aa"
+  },
+  {
+    "id": "bullet_tower", "tier": "turret", "name": "Bullet Tower",
+    "hp": 70, "speed": 0, "score": 450,
+    "attack": { "type": "radial", "cooldown": 2.5, "bullets": 12, "speed": 5 },
+    "ai": "stationary",
+    "drop": { "medal": 0.3, "powerup": 0.15, "bomb": 0.05 },
+    "size": 0.6, "color": "0x775555"
+  },
+  {
+    "id": "missile_silo", "tier": "turret", "name": "Missile Silo",
+    "hp": 100, "speed": 0, "score": 600,
+    "attack": { "type": "homing", "cooldown": 4.0, "bullets": 2, "speed": 4, "steer": 0.12 },
+    "ai": "stationary",
+    "drop": { "medal": 0.3, "powerup": 0.2, "bomb": 0.08 },
+    "size": 0.7, "color": "0x445544"
+  },
+  {
+    "id": "elite_interceptor", "tier": "elite", "name": "Elite Interceptor",
+    "hp": 80, "speed": 5, "score": 1000,
+    "attack": { "type": "rotating", "cooldown": 0.3, "bullets": 8, "speed": 4, "rotSpeed": 20 },
+    "ai": "chase",
+    "drop": { "medal": 0.4, "powerup": 0.3, "bomb": 0.05 },
+    "size": 0.65, "color": "0xee5533"
+  },
+  {
+    "id": "laser_destroyer", "tier": "elite", "name": "Laser Destroyer",
+    "hp": 150, "speed": 3, "score": 1500,
+    "attack": { "type": "fan", "cooldown": 1.5, "bullets": 8, "speed": 6, "angle": 60 },
+    "ai": "patrol",
+    "drop": { "medal": 0.4, "powerup": 0.3, "bomb": 0.08 },
+    "size": 0.8, "color": "0x3366cc"
+  },
+  {
+    "id": "missile_cruiser", "tier": "elite", "name": "Missile Cruiser",
+    "hp": 200, "speed": 2, "score": 2000,
+    "attack": { "type": "homing", "cooldown": 2.0, "bullets": 8, "speed": 5, "steer": 0.1 },
+    "ai": "patrol",
+    "drop": { "medal": 0.5, "powerup": 0.3, "bomb": 0.1 },
+    "size": 0.9, "color": "0x993333"
+  },
+  {
+    "id": "drone_carrier", "tier": "elite", "name": "Giant Drone Carrier",
+    "hp": 300, "speed": 1.5, "score": 3000,
+    "attack": { "type": "radial", "cooldown": 3.0, "bullets": 6, "speed": 4 },
+    "ai": "patrol",
+    "drop": { "medal": 0.5, "powerup": 0.3, "bomb": 0.1 },
+    "size": 1.2, "color": "0x664444"
+  },
+  {
+    "id": "alien_core", "tier": "elite", "name": "Alien Parasite Core",
+    "hp": 400, "speed": 1, "score": 5000,
+    "attack": { "type": "flower", "cooldown": 6.0, "bullets": 16, "speed": 3, "rings": 5 },
+    "ai": "sine",
+    "drop": { "medal": 0.6, "powerup": 0.4, "bomb": 0.15 },
+    "size": 1.0, "color": "0xaa33aa"
+  },
+  {
+    "id": "fairy", "tier": "hidden", "name": "Fairy",
+    "hp": 1, "speed": 8, "score": 5000,
+    "attack": { "type": "none", "cooldown": 99, "bullets": 0, "speed": 0 },
+    "ai": "sine",
+    "drop": { "medal": 0, "powerup": 1.0, "bomb": 0 },
+    "size": 0.25, "color": "0xffccff"
+  },
+  {
+    "id": "ufo", "tier": "hidden", "name": "UFO",
+    "hp": 15, "speed": 10, "score": 8000,
+    "attack": { "type": "radial", "cooldown": 2.0, "bullets": 6, "speed": 6 },
+    "ai": "sine",
+    "drop": { "medal": 1.0, "powerup": 0.3, "bomb": 0.1 },
+    "size": 0.5, "color": "0xffff66"
+  }
+]

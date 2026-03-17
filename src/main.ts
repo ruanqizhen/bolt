@@ -3,11 +3,19 @@ import { Camera } from './core/Camera';
 import { GameScene } from './core/Scene';
 import { GameLoop } from './core/GameLoop';
 import { Input } from './systems/Input';
-import * as THREE from 'three';
+import { ParticleSystem } from './systems/Particles';
+import { CollisionSystem } from './systems/Collision';
+import { Player } from './game/Player';
+import { BulletManager } from './game/Bullet';
+import { WeaponFactory } from './game/weapons/WeaponFactory';
+import { VulcanWeapon } from './game/weapons/VulcanWeapon';
+import { LaserWeapon } from './game/weapons/LaserWeapon';
+import { HomingLaserWeapon } from './game/weapons/HomingLaserWeapon';
+import { BombSystem } from './game/weapons/BombSystem';
+import { Level } from './game/Level';
 
 /**
- * Bolt (雷电) — Main entry point
- * Initializes all core systems and starts the game loop.
+ * Bolt (雷电) — Main Game
  */
 class Game {
   private renderer: Renderer;
@@ -16,135 +24,128 @@ class Game {
   private gameLoop: GameLoop;
   private input: Input;
 
-  // Debug: player placeholder
-  private playerMesh!: THREE.Mesh;
+  // Systems
+  private player: Player;
+  private bulletManager: BulletManager;
+  private particles: ParticleSystem;
+  private collision: CollisionSystem;
+  private weaponFactory: WeaponFactory;
+  private homingWeapon: HomingLaserWeapon;
+  private bombSystem: BombSystem;
+  private level: Level;
 
   constructor() {
     const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
     if (!canvas) throw new Error('Canvas element #game-canvas not found');
 
-    // Initialize core systems
+    // Core
     this.renderer = new Renderer(canvas);
     this.camera = new Camera();
     this.gameScene = new GameScene();
     this.input = new Input();
 
-    // Create a placeholder player (simple triangle/arrow shape)
-    this.createPlayerPlaceholder();
+    // Player
+    this.player = new Player();
+    this.gameScene.scene.add(this.player.mesh);
+    this.player.position.set(0, 0, 5);
 
-    // Initialize game loop
+    // Bullets & Particles
+    this.bulletManager = new BulletManager(this.gameScene.scene);
+    this.particles = new ParticleSystem(this.gameScene.scene);
+    this.collision = new CollisionSystem();
+    this.bombSystem = new BombSystem();
+
+    // Weapons
+    this.weaponFactory = new WeaponFactory();
+    this.weaponFactory.registerWeapon(new VulcanWeapon());
+    this.weaponFactory.registerWeapon(new LaserWeapon());
+    this.homingWeapon = new HomingLaserWeapon();
+    this.weaponFactory.registerWeapon(this.homingWeapon);
+    this.weaponFactory.switchWeapon('vulcan');
+
+    // Level system
+    this.level = new Level(
+      this.gameScene.scene,
+      this.bulletManager,
+      this.particles,
+      this.gameScene
+    );
+
+    // Game loop
     this.gameLoop = new GameLoop(
       (dt) => this.update(dt),
       () => this.render()
     );
 
-    // Update HUD
     this.updateHUD();
-
-    // Start the loop
     this.gameLoop.start();
 
-    console.log('[Bolt] Game initialized. Use WASD to move, J to shoot, K for bomb.');
-  }
-
-  private createPlayerPlaceholder(): void {
-    // Simple fighter jet shape (triangle pointing up)
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0.8);      // Nose
-    shape.lineTo(-0.5, -0.6);  // Left wing
-    shape.lineTo(-0.15, -0.3); // Left indent
-    shape.lineTo(0, -0.5);     // Tail
-    shape.lineTo(0.15, -0.3);  // Right indent
-    shape.lineTo(0.5, -0.6);   // Right wing
-    shape.lineTo(0, 0.8);      // Back to nose
-
-    const geometry = new THREE.ExtrudeGeometry(shape, {
-      depth: 0.15,
-      bevelEnabled: false,
+    // Key bindings
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Digit1') {
+        this.weaponFactory.switchWeapon('vulcan');
+        this.updateHUD();
+      } else if (e.code === 'Digit2') {
+        this.weaponFactory.switchWeapon('laser');
+        this.updateHUD();
+      } else if (e.code === 'Digit3') {
+        this.weaponFactory.switchWeapon('homing');
+        this.updateHUD();
+      } else if (e.code === 'KeyU') {
+        this.weaponFactory.upgrade();
+        this.updateHUD();
+      }
     });
 
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x4488ff,
-      metalness: 0.7,
-      roughness: 0.3,
-      emissive: 0x112244,
-      emissiveIntensity: 0.3,
-    });
-
-    this.playerMesh = new THREE.Mesh(geometry, material);
-    this.playerMesh.rotation.x = -Math.PI / 2; // Lay flat
-    this.playerMesh.position.y = 0;
-    this.playerMesh.castShadow = true;
-
-    // Add a glowing center hitbox indicator
-    const hitboxGeom = new THREE.SphereGeometry(0.1, 16, 16);
-    const hitboxMat = new THREE.MeshBasicMaterial({
-      color: 0x00ffff,
-      transparent: true,
-      opacity: 0.8,
-    });
-    const hitbox = new THREE.Mesh(hitboxGeom, hitboxMat);
-    hitbox.position.y = 0.1;
-    this.playerMesh.add(hitbox);
-
-    // Add thruster flame (simple cone)
-    const thrusterGeom = new THREE.ConeGeometry(0.12, 0.5, 8);
-    const thrusterMat = new THREE.MeshBasicMaterial({
-      color: 0xff6600,
-      transparent: true,
-      opacity: 0.7,
-    });
-    const thruster = new THREE.Mesh(thrusterGeom, thrusterMat);
-    thruster.position.set(0, 0.08, 0.55);
-    thruster.rotation.x = Math.PI;
-    this.playerMesh.add(thruster);
-
-    this.gameScene.scene.add(this.playerMesh);
+    console.log('[Bolt] Level 1 started! WASD=move, J=shoot, K=bomb, 1/2/3=weapon, U=upgrade');
   }
 
   private update(deltaTime: number): void {
-    // 1. Update input
+    // 1. Input
     const inputState = this.input.getState();
+    const dragDelta = this.input.getDragDelta();
 
-    // 2. Update player position
-    const speed = inputState.slow ? 3 : 6;
-    this.playerMesh.position.x += inputState.moveX * speed * deltaTime;
-    this.playerMesh.position.z -= inputState.moveY * speed * deltaTime;
+    // 2. Player
+    this.player.update(deltaTime, inputState, dragDelta, this.camera);
 
-    // Mouse/touch drag movement
-    const drag = this.input.getDragDelta();
-    if (drag) {
-      const sensitivity = 0.03;
-      this.playerMesh.position.x += drag.dx * sensitivity;
-      this.playerMesh.position.z += drag.dy * sensitivity;
+    // 3. Weapons
+    this.weaponFactory.update(deltaTime);
+
+    // Update homing weapon targets
+    this.homingWeapon.enemyPositions = this.level.getAliveEnemyPositions();
+
+    if (inputState.shoot && this.player.isAlive) {
+      this.weaponFactory.fire(this.player.position, this.bulletManager, deltaTime);
     }
 
-    // Clamp to visible bounds
-    const bounds = this.camera.getVisibleSize();
-    const halfW = bounds.width * 0.45;
-    const halfH = bounds.height * 0.45;
-    this.playerMesh.position.x = Math.max(-halfW, Math.min(halfW, this.playerMesh.position.x));
-    this.playerMesh.position.z = Math.max(-halfH, Math.min(halfH, this.playerMesh.position.z));
-
-    // Slight tilt when moving laterally
-    this.playerMesh.rotation.z = -inputState.moveX * 0.3;
-
-    // 3. Shoot feedback (visual pulse on hitbox when shooting)
-    if (inputState.shoot) {
-      const hitbox = this.playerMesh.children[0] as THREE.Mesh;
-      if (hitbox) {
-        (hitbox.material as THREE.MeshBasicMaterial).opacity = 0.4 + Math.sin(performance.now() * 0.01) * 0.4;
-      }
+    // 4. Bomb
+    if (inputState.bomb && this.player.bombs > 0 && this.player.isAlive && !this.bombSystem.active) {
+      this.player.bombs--;
+      this.bombSystem.trigger(this.player.position, this.bulletManager, this.particles, this.gameScene);
     }
 
-    // 4. Bomb feedback
-    if (inputState.bomb) {
-      this.gameScene.spawnExplosionLight(this.playerMesh.position.clone(), 0xffaa00, 5);
-      console.log('[Bolt] Bomb triggered!');
-    }
+    // 5. Level system (enemies, boss, collision, drops — all handled internally)
+    this.level.update(deltaTime, this.player, this.weaponFactory, this.collision, this.bombSystem);
 
-    // 5. Update scene (parallax scrolling)
+    // 6. Update bullets
+    this.bulletManager.update(deltaTime);
+
+    // 7. Update particles
+    this.particles.update(deltaTime);
+
+    // 8. Update scene (parallax)
     this.gameScene.update(deltaTime);
+
+    // 9. Camera shake
+    const shake = this.bombSystem.getShakeIntensity();
+    if (shake > 0) {
+      this.camera.camera.position.x = (Math.random() - 0.5) * shake * 0.5;
+    } else {
+      this.camera.camera.position.x = 0;
+    }
+
+    // 10. Update HUD
+    this.updateHUD();
   }
 
   private render(): void {
@@ -152,16 +153,42 @@ class Game {
   }
 
   private updateHUD(): void {
-    const lives = document.getElementById('hud-lives');
-    const bombs = document.getElementById('hud-bombs');
-    const weapon = document.getElementById('hud-weapon');
-    if (lives) lives.textContent = '❤ ❤ ❤';
-    if (bombs) bombs.textContent = '💣 ×3';
-    if (weapon) weapon.textContent = '🔴 Vulcan Lv.1';
+    const scoreEl = document.getElementById('hud-score');
+    const livesEl = document.getElementById('hud-lives');
+    const bombsEl = document.getElementById('hud-bombs');
+    const weaponEl = document.getElementById('hud-weapon');
+    const bossHpEl = document.getElementById('hud-boss-hp');
+    const bossHpFill = document.getElementById('boss-hp-bar-fill');
+
+    if (scoreEl) scoreEl.textContent = `SCORE: ${this.player.score.toLocaleString()}`;
+    if (livesEl) livesEl.textContent = '❤'.repeat(Math.max(0, this.player.lives));
+    if (bombsEl) bombsEl.textContent = `💣 ×${this.player.bombs}`;
+
+    const typeNames: Record<string, string> = {
+      vulcan: '🔴 Vulcan',
+      laser: '🔵 Laser',
+      homing: '🟣 Homing',
+    };
+    const typeName = typeNames[this.weaponFactory.currentType] || 'Unknown';
+    if (weaponEl) weaponEl.textContent = `${typeName} Lv.${this.weaponFactory.currentLevel}`;
+
+    // Boss HP bar
+    if (this.level.isBossActive()) {
+      if (bossHpEl) bossHpEl.classList.remove('hidden');
+      if (bossHpFill) bossHpFill.style.width = `${this.level.getBossHpPercent() * 100}%`;
+    } else if (!this.level.isBossWarningActive()) {
+      if (bossHpEl) bossHpEl.classList.add('hidden');
+    }
+
+    // Medal chain indicator
+    const chain = this.level.medalSystem.getChain();
+    if (chain > 0 && scoreEl) {
+      scoreEl.textContent += ` | 🏅×${chain}`;
+    }
   }
 }
 
-// Start the game when DOM is ready
+// Start
 window.addEventListener('DOMContentLoaded', () => {
   new Game();
 });

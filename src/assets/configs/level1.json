@@ -1,0 +1,43 @@
+[
+  { "time": 2,   "spawn": "scout_drone",   "count": 3, "pattern": "line",   "x": 0, "spacing": 2 },
+  { "time": 5,   "spawn": "scout_drone",   "count": 4, "pattern": "line",   "x": -3, "spacing": 2 },
+  { "time": 8,   "spawn": "serpent_drone",  "count": 3, "pattern": "line",   "x": 2, "spacing": 1.5 },
+  { "time": 12,  "spawn": "scout_drone",   "count": 5, "pattern": "line",   "x": -4, "spacing": 2 },
+  { "time": 15,  "spawn": "dive_scout",    "count": 2, "pattern": "random" },
+  { "time": 18,  "spawn": "serpent_drone",  "count": 4, "pattern": "line",   "x": 0, "spacing": 2 },
+
+  { "time": 22,  "spawn": "interceptor",   "count": 2, "pattern": "random" },
+  { "time": 26,  "spawn": "scout_drone",   "count": 4, "pattern": "line",   "x": -3, "spacing": 2 },
+  { "time": 28,  "spawn": "interceptor",   "count": 3, "pattern": "random" },
+  { "time": 32,  "spawn": "heavy_fighter",  "count": 1, "pattern": "random" },
+  { "time": 35,  "spawn": "interceptor",   "count": 2, "pattern": "random" },
+  { "time": 38,  "spawn": "dive_scout",    "count": 3, "pattern": "random" },
+  { "time": 42,  "spawn": "heavy_fighter",  "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+  { "time": 45,  "spawn": "missile_fighter","count": 1, "pattern": "random" },
+
+  { "time": 50,  "event": "powerup_rain",  "duration": 8 },
+  { "time": 52,  "spawn": "scout_drone",   "count": 3, "pattern": "line",   "x": 0, "spacing": 3 },
+  { "time": 58,  "spawn": "serpent_drone",  "count": 2, "pattern": "random" },
+
+  { "time": 65,  "spawn": "parasite_tank",  "count": 1, "pattern": "fixed", "x": -3 },
+  { "time": 68,  "spawn": "parasite_tank",  "count": 1, "pattern": "fixed", "x": 3 },
+  { "time": 70,  "spawn": "aa_turret",     "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+  { "time": 75,  "spawn": "interceptor",   "count": 3, "pattern": "random" },
+  { "time": 78,  "spawn": "artillery_carrier","count": 1, "pattern": "fixed", "x": 0 },
+  { "time": 82,  "spawn": "aa_turret",     "count": 3, "pattern": "line",   "x": -3, "spacing": 3 },
+  { "time": 85,  "spawn": "heavy_fighter",  "count": 2, "pattern": "random" },
+  { "time": 88,  "spawn": "missile_truck",  "count": 1, "pattern": "fixed", "x": 2 },
+  { "time": 92,  "spawn": "parasite_tank",  "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+
+  { "time": 100, "event": "powerup_rain",  "duration": 5 },
+
+  { "time": 108, "spawn": "elite_interceptor","count": 1, "pattern": "random" },
+  { "time": 112, "spawn": "interceptor",    "count": 4, "pattern": "random" },
+  { "time": 116, "spawn": "laser_fighter",   "count": 2, "pattern": "random" },
+  { "time": 120, "spawn": "elite_interceptor","count": 1, "pattern": "random" },
+  { "time": 124, "spawn": "missile_fighter",  "count": 2, "pattern": "random" },
+
+  { "time": 130, "event": "clear" },
+  { "time": 132, "event": "boss_warning" },
+  { "time": 140, "boss": "tank_boss" }
+]
