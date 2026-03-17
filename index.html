@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Bolt (雷电) — A 2.5D modernized bullet-hell shooter game" />
+  <title>Bolt 雷电</title>
+  <link rel="stylesheet" href="/src/styles/index.css" />
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+    <!-- HUD Overlay -->
+    <div id="hud" class="hud">
+      <div id="hud-score" class="hud-score">SCORE: 0</div>
+      <div class="hud-right">
+        <div id="hud-lives" class="hud-lives"></div>
+        <div id="hud-bombs" class="hud-bombs"></div>
+        <div id="hud-weapon" class="hud-weapon"></div>
+      </div>
+      <div id="hud-boss-hp" class="hud-boss-hp hidden">
+        <div class="boss-hp-label">WARNING</div>
+        <div class="boss-hp-bar-bg">
+          <div id="boss-hp-bar-fill" class="boss-hp-bar-fill"></div>
+        </div>
+      </div>
+    </div>
+    <!-- FPS Counter (dev only) -->
+    <div id="fps-counter" class="fps-counter">FPS: 0</div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
