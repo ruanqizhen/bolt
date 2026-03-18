@@ -13,6 +13,12 @@ export class GameScene {
   private cloudPlane!: THREE.Mesh;
   private groundTexture!: THREE.Texture;
   private cloudTexture!: THREE.Texture;
+  
+  // Materials
+  private groundMat!: THREE.MeshLambertMaterial;
+  private oceanMat!: THREE.ShaderMaterial;
+  private currentEnv: 'land' | 'ocean' = 'land';
+  private time = 0;
 
   // Scroll speeds (units/s)
   private groundSpeed = 1.0;
@@ -59,15 +65,86 @@ export class GameScene {
     this.groundTexture.wrapT = THREE.RepeatWrapping;
     this.groundTexture.repeat.set(4, 4);
 
-    const groundGeom = new THREE.PlaneGeometry(80, 80);
-    const groundMat = new THREE.MeshLambertMaterial({
+    // Use more segments for vertex displacement
+    const groundGeom = new THREE.PlaneGeometry(80, 80, 64, 64);
+    
+    this.groundMat = new THREE.MeshLambertMaterial({
       map: this.groundTexture,
     });
-    this.groundPlane = new THREE.Mesh(groundGeom, groundMat);
+    
+    // Ocean shader material using Gerstner-like waves
+    this.oceanMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uColorDeep: { value: new THREE.Color(0x0a2a4a) },
+        uColorShallow: { value: new THREE.Color(0x1a5a8a) },
+        uGridColor: { value: new THREE.Color(0x4aaaff) },
+      },
+      vertexShader: `
+        uniform float uTime;
+        varying vec2 vUv;
+        varying float vElevation;
+
+        void main() {
+          vUv = uv;
+          vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+          
+          // Gerstner-like wave displacement
+          float elevation = sin(modelPosition.x * 0.5 + uTime * 1.5) * 0.4
+                          + sin(modelPosition.y * 0.8 + uTime * 2.0) * 0.4;
+                          
+          modelPosition.z += elevation; // z is up due to rotation.x = -PI/2
+          vElevation = elevation;
+          
+          gl_Position = projectionMatrix * viewMatrix * modelPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform vec3 uColorDeep;
+        uniform vec3 uColorShallow;
+        uniform vec3 uGridColor;
+        
+        varying vec2 vUv;
+        varying float vElevation;
+
+        void main() {
+          // Mix colors based on elevation
+          float mixStrength = (vElevation + 0.8) * 0.5;
+          vec3 color = mix(uColorDeep, uColorShallow, mixStrength);
+          
+          // Add a subtle tech grid over the ocean
+          float gridX = step(0.98, fract(vUv.x * 40.0));
+          float gridY = step(0.98, fract(vUv.y * 40.0));
+          float grid = max(gridX, gridY);
+          
+          // Add foam on wave peaks
+          float foam = step(0.65, vElevation);
+          
+          color += uGridColor * grid * 0.3;
+          color += vec3(1.0) * foam * 0.5;
+          
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `,
+      transparent: true,
+      opacity: 0.9,
+    });
+
+    this.groundPlane = new THREE.Mesh(groundGeom, this.groundMat);
     this.groundPlane.rotation.x = -Math.PI / 2;
     this.groundPlane.position.y = -2;
     this.groundPlane.receiveShadow = true;
     this.scene.add(this.groundPlane);
+  }
+
+  public setEnvironment(type: 'land' | 'ocean'): void {
+    this.currentEnv = type;
+    if (type === 'ocean') {
+      this.groundPlane.material = this.oceanMat;
+    } else {
+      this.groundPlane.material = this.groundMat;
+    }
   }
 
   private createCloudLayer(): void {
@@ -91,10 +168,17 @@ export class GameScene {
   }
 
   /**
-   * Update parallax scrolling each frame.
+   * Update parallax scrolling and shaders each frame.
    */
   update(deltaTime: number): void {
-    this.groundTexture.offset.y += this.groundSpeed * deltaTime * 0.05;
+    this.time += deltaTime;
+    
+    if (this.currentEnv === 'land') {
+      this.groundTexture.offset.y += this.groundSpeed * deltaTime * 0.05;
+    } else {
+      this.oceanMat.uniforms.uTime.value = this.time;
+    }
+    
     this.cloudTexture.offset.y += this.cloudSpeed * deltaTime * 0.05;
   }
 

@@ -13,6 +13,9 @@ export class DropItem {
   public type: DropType;
   public active = false;
   private age = 0;
+  private baseColor = 0xffffff;
+  private isFlashing = false;
+  private isRainbow = false;
 
   // Drop items float down slowly
   private static readonly FALL_SPEED = 2;
@@ -33,19 +36,23 @@ export class DropItem {
     this.type = 'medal';
   }
 
-  spawn(x: number, z: number, type: DropType): void {
+  spawn(x: number, z: number, type: DropType, baseColor = 0xffffff, isFlashing = false, isRainbow = false): void {
     this.active = true;
     this.age = 0;
     this.type = type;
     this.position.set(x, 0.3, z);
     this.mesh.visible = true;
 
+    this.baseColor = baseColor;
+    this.isFlashing = isFlashing;
+    this.isRainbow = isRainbow;
+
     // Set texture by type
     const tm = TextureManager.getInstance();
     const mat = this.mesh.material as THREE.MeshBasicMaterial;
     mat.map = tm.getDrop(type);
     mat.needsUpdate = true;
-    mat.color.setRGB(1, 1, 1);
+    mat.color.setHex(baseColor);
   }
 
   update(deltaTime: number): void {
@@ -65,9 +72,27 @@ export class DropItem {
       this.deactivate();
     }
 
-    // Flash near expiry
+    // Special visualizations for medal chains
+    const mat = this.mesh.material as THREE.MeshBasicMaterial;
+    if (this.isFlashing) {
+      // Fast pulse opacity
+      mat.opacity = 0.5 + Math.sin(this.age * 20) * 0.5;
+    } else {
+      mat.opacity = 1.0;
+    }
+
+    if (this.isRainbow) {
+      // Rapid color cycling
+      mat.color.setHSL((this.age * 2) % 1.0, 1.0, 0.6);
+    } else {
+      mat.color.setHex(this.baseColor);
+    }
+
+    // Flash near expiry (overrides opacity)
     if (this.age > DropItem.LIFETIME - 2) {
       this.mesh.visible = Math.sin(this.age * 10) > 0;
+    } else {
+      this.mesh.visible = true;
     }
   }
 
@@ -95,10 +120,14 @@ export class DropManager {
   /**
    * Spawn a drop at the given position based on roll result.
    */
-  spawn(x: number, z: number, rollResult: 'powerup' | 'bomb' | 'medal' | null, currentWeapon?: string): void {
+  spawn(x: number, z: number, rollResult: 'powerup' | 'bomb' | 'medal' | null, currentWeapon?: string, medalState: 'normal' | 'gold' | 'gold_flash' | 'rainbow' = 'normal'): void {
     if (!rollResult) return;
 
     let type: DropType;
+    let baseColor = 0xffffff;
+    let isFlashing = false;
+    let isRainbow = false;
+
     if (rollResult === 'powerup') {
       // Randomly pick a weapon color, bias toward current
       const r = Math.random();
@@ -112,11 +141,14 @@ export class DropManager {
       type = 'bomb';
     } else {
       type = 'medal';
+      if (medalState === 'gold') baseColor = 0xffd700;
+      else if (medalState === 'gold_flash') { baseColor = 0xffffff; isFlashing = true; } // Flash between white/invisible texture opacity
+      else if (medalState === 'rainbow') { baseColor = 0xffffff; isRainbow = true; }
     }
 
     const drop = this.drops.find((d) => !d.active);
     if (drop) {
-      drop.spawn(x, z, type);
+      drop.spawn(x, z, type, baseColor, isFlashing, isRainbow);
     }
   }
 

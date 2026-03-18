@@ -14,6 +14,7 @@
   { "time": 44,  "spawn": "bullet_tower",    "count": 4, "pattern": "line",   "x": -4, "spacing": 2.5 },
 
   { "time": 50,  "event": "powerup_rain",   "duration": 8 },
+  { "time": 52,  "spawn": "fairy",          "count": 1, "pattern": "random" },
 
   { "time": 58,  "spawn": "walker_mech",     "count": 3, "pattern": "line",   "x": -3, "spacing": 3 },
   { "time": 62,  "spawn": "alien_core",      "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
@@ -23,6 +24,7 @@
   { "time": 78,  "spawn": "elite_interceptor","count": 5, "pattern": "random" },
 
   { "time": 85,  "event": "powerup_rain",   "duration": 5 },
+  { "time": 88,  "spawn": "ufo",            "count": 1, "pattern": "random" },
 
   { "time": 92,  "spawn": "alien_core",      "count": 2, "pattern": "line",   "x": -3, "spacing": 6 },
   { "time": 96,  "spawn": "drone_carrier",   "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },

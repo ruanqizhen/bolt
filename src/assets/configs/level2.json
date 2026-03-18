@@ -15,6 +15,7 @@
 
   { "time": 48,  "event": "powerup_rain",   "duration": 6 },
   { "time": 50,  "spawn": "laser_fighter",   "count": 3, "pattern": "random" },
+  { "time": 52,  "spawn": "ufo",            "count": 1, "pattern": "random" },
 
   { "time": 58,  "spawn": "walker_mech",    "count": 1, "pattern": "fixed",  "x": 0 },
   { "time": 62,  "spawn": "elite_interceptor","count": 2, "pattern": "random" },

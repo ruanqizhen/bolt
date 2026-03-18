@@ -54,7 +54,10 @@ export class TextureManager {
         (texture) => {
           texture.minFilter = THREE.NearestFilter;
           texture.magFilter = THREE.NearestFilter;
-          texture.colorSpace = THREE.SRGBColorSpace;
+          // Apply sRGB to everything except backgrounds for brighter procedural-like look
+          if (!relativePath.startsWith('bg/')) {
+            texture.colorSpace = THREE.SRGBColorSpace;
+          }
           this.cache.set(relativePath, texture);
           resolve(texture);
         },

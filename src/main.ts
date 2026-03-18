@@ -211,6 +211,12 @@ class Game {
     const levelEl = document.getElementById('hud-level');
     if (levelEl) levelEl.textContent = `STAGE ${levelNum}`;
 
+    if (levelNum === 3) {
+      this.gameScene.setEnvironment('ocean');
+    } else {
+      this.gameScene.setEnvironment('land');
+    }
+
     this.updateHUD();
   }
 

@@ -364,7 +364,13 @@ export class Level {
     // Roll for drops
     const dropResult = enemy.rollDrop();
     if (dropResult) {
-      this.dropManager.spawn(enemy.position.x, enemy.position.z, dropResult);
+      this.dropManager.spawn(
+        enemy.position.x,
+        enemy.position.z,
+        dropResult,
+        undefined, // currentWeapon optional
+        this.medalSystem.getState()
+      );
     }
   }
 

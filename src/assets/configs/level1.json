@@ -17,6 +17,7 @@
 
   { "time": 50,  "event": "powerup_rain",  "duration": 8 },
   { "time": 52,  "spawn": "scout_drone",   "count": 3, "pattern": "line",   "x": 0, "spacing": 3 },
+  { "time": 55,  "spawn": "fairy",         "count": 1, "pattern": "random" },
   { "time": 58,  "spawn": "serpent_drone",  "count": 2, "pattern": "random" },
 
   { "time": 65,  "spawn": "parasite_tank",  "count": 1, "pattern": "fixed", "x": -3 },
