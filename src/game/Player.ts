@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { InputState, Input } from '../systems/Input';
 import { Camera } from '../core/Camera';
+import { TextureManager } from '../systems/TextureManager';
 
 /**
  * Player — The player's fighter jet entity.
@@ -42,30 +43,19 @@ export class Player {
   }
 
   private createVisuals(): void {
-    // Fighter jet body shape
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0.8);
-    shape.lineTo(-0.5, -0.6);
-    shape.lineTo(-0.15, -0.3);
-    shape.lineTo(0, -0.5);
-    shape.lineTo(0.15, -0.3);
-    shape.lineTo(0.5, -0.6);
-    shape.lineTo(0, 0.8);
+    const tm = TextureManager.getInstance();
 
-    const bodyGeom = new THREE.ExtrudeGeometry(shape, {
-      depth: 0.15,
-      bevelEnabled: false,
-    });
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x4488ff,
-      metalness: 0.7,
-      roughness: 0.3,
-      emissive: 0x112244,
-      emissiveIntensity: 0.3,
+    // Textured plane for player ship sprite
+    const bodyGeom = new THREE.PlaneGeometry(1.4, 1.8);
+    const bodyMat = new THREE.MeshBasicMaterial({
+      map: tm.get('player/ship.png'),
+      transparent: true,
+      alphaTest: 0.1,
+      side: THREE.DoubleSide,
     });
     this.bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
     this.bodyMesh.rotation.x = -Math.PI / 2;
-    this.bodyMesh.castShadow = true;
+    this.bodyMesh.position.y = 0.15;
     this.mesh.add(this.bodyMesh);
 
     // Hitbox glow

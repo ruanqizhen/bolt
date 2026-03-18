@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { BulletManager } from './Bullet';
+import { TextureManager } from '../systems/TextureManager';
 
 /**
  * EnemyConfig — Data-driven enemy definition loaded from JSON.
@@ -56,18 +57,18 @@ export class Enemy {
     this.score = config.score;
     this.fireTimer = config.attack.cooldown * (0.5 + Math.random() * 0.5);
 
-    // Create visual mesh — colored box scaled by tier
-    const geom = new THREE.BoxGeometry(config.size, config.size * 0.4, config.size);
-    const color = parseInt(config.color.replace('0x', ''), 16);
-    const mat = new THREE.MeshStandardMaterial({
-      color,
-      metalness: 0.5,
-      roughness: 0.4,
-      emissive: color,
-      emissiveIntensity: 0.15,
+    // Create visual mesh — textured plane from PNG
+    const tm = TextureManager.getInstance();
+    const geom = new THREE.PlaneGeometry(config.size * 1.6, config.size * 1.6);
+    const mat = new THREE.MeshBasicMaterial({
+      map: tm.getEnemy(config.id),
+      transparent: true,
+      alphaTest: 0.1,
+      side: THREE.DoubleSide,
     });
     this.mesh = new THREE.Mesh(geom, mat);
-    this.mesh.castShadow = true;
+    this.mesh.rotation.x = -Math.PI / 2;
+    this.mesh.position.y = 0.1;
     this.position = this.mesh.position;
   }
 
@@ -188,10 +189,10 @@ export class Enemy {
    */
   takeDamage(amount: number): boolean {
     this.hp -= amount;
-    // Flash effect
-    const mat = this.mesh.material as THREE.MeshStandardMaterial;
-    mat.emissiveIntensity = 1.0;
-    setTimeout(() => { if (mat) mat.emissiveIntensity = 0.15; }, 80);
+    // Flash effect — briefly boost opacity/brightness
+    const mat = this.mesh.material as THREE.MeshBasicMaterial;
+    mat.color.set(0xffffff);
+    setTimeout(() => { if (mat) mat.color.set(0xffffff); mat.color.setRGB(1, 1, 1); }, 80);
 
     if (this.hp <= 0) {
       this.alive = false;
@@ -225,14 +226,17 @@ export class Enemy {
     this.sineOffset = Math.random() * Math.PI * 2;
     this.rotAngle = 0;
 
-    // Update visual
-    const color = parseInt(config.color.replace('0x', ''), 16);
-    const mat = this.mesh.material as THREE.MeshStandardMaterial;
-    mat.color.set(color);
-    mat.emissive.set(color);
-    mat.emissiveIntensity = 0.15;
+    // Update texture to match new enemy type
+    const tm = TextureManager.getInstance();
+    const mat = this.mesh.material as THREE.MeshBasicMaterial;
+    mat.map = tm.getEnemy(config.id);
+    mat.needsUpdate = true;
+    mat.color.setRGB(1, 1, 1);
 
-    this.mesh.scale.set(config.size / 0.8, 1, config.size / 0.8);
+    // Scale mesh to enemy size
+    const baseSize = 0.4 * 1.6; // default config.size * 1.6
+    const scale = (config.size * 1.6) / baseSize;
+    this.mesh.scale.set(scale, scale, scale);
   }
 
   dispose(): void {

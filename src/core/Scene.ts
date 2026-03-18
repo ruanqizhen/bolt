@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { TextureManager } from '../systems/TextureManager';
 
 /**
  * GameScene — Manages the Three.js scene, multi-layer parallax scrolling,
@@ -52,42 +53,8 @@ export class GameScene {
   }
 
   private createGroundLayer(): void {
-    // Procedural ground texture — checkerboard pattern for now
-    const size = 512;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
-
-    // Dark green terrain base
-    ctx.fillStyle = '#1a3a1a';
-    ctx.fillRect(0, 0, size, size);
-
-    // Grid lines
-    ctx.strokeStyle = '#1e4420';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < size; i += 32) {
-      ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, size);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, i);
-      ctx.lineTo(size, i);
-      ctx.stroke();
-    }
-
-    // Some random terrain details (small darker patches)
-    ctx.fillStyle = '#153015';
-    for (let i = 0; i < 30; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const w = 10 + Math.random() * 30;
-      const h = 10 + Math.random() * 30;
-      ctx.fillRect(x, y, w, h);
-    }
-
-    this.groundTexture = new THREE.CanvasTexture(canvas);
+    const tm = TextureManager.getInstance();
+    this.groundTexture = tm.get('bg/ground.png');
     this.groundTexture.wrapS = THREE.RepeatWrapping;
     this.groundTexture.wrapT = THREE.RepeatWrapping;
     this.groundTexture.repeat.set(4, 4);
@@ -104,28 +71,8 @@ export class GameScene {
   }
 
   private createCloudLayer(): void {
-    // Semi-transparent cloud texture
-    const size = 256;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
-
-    ctx.clearRect(0, 0, size, size);
-
-    // Soft cloud puffs
-    for (let i = 0; i < 12; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const r = 20 + Math.random() * 40;
-      const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-      grad.addColorStop(0, 'rgba(200, 210, 230, 0.15)');
-      grad.addColorStop(1, 'rgba(200, 210, 230, 0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    }
-
-    this.cloudTexture = new THREE.CanvasTexture(canvas);
+    const tm = TextureManager.getInstance();
+    this.cloudTexture = tm.get('bg/clouds.png');
     this.cloudTexture.wrapS = THREE.RepeatWrapping;
     this.cloudTexture.wrapT = THREE.RepeatWrapping;
     this.cloudTexture.repeat.set(3, 3);

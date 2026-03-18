@@ -1,0 +1,36 @@
+[
+  { "time": 2,   "spawn": "heavy_fighter",    "count": 4, "pattern": "random" },
+  { "time": 5,   "spawn": "elite_interceptor","count": 2, "pattern": "random" },
+  { "time": 8,   "spawn": "laser_destroyer",  "count": 1, "pattern": "fixed",  "x": 0 },
+  { "time": 12,  "spawn": "missile_cruiser",  "count": 1, "pattern": "fixed",  "x": -3 },
+  { "time": 15,  "spawn": "missile_silo",    "count": 3, "pattern": "line",   "x": -3, "spacing": 3 },
+  { "time": 18,  "spawn": "walker_mech",     "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+
+  { "time": 25,  "spawn": "alien_core",      "count": 1, "pattern": "fixed",  "x": 2 },
+  { "time": 28,  "spawn": "drone_carrier",   "count": 1, "pattern": "fixed",  "x": -2 },
+  { "time": 32,  "spawn": "elite_interceptor","count": 4, "pattern": "random" },
+  { "time": 36,  "spawn": "laser_destroyer",  "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+  { "time": 40,  "spawn": "missile_cruiser",  "count": 2, "pattern": "line",   "x": -3, "spacing": 6 },
+  { "time": 44,  "spawn": "bullet_tower",    "count": 4, "pattern": "line",   "x": -4, "spacing": 2.5 },
+
+  { "time": 50,  "event": "powerup_rain",   "duration": 8 },
+
+  { "time": 58,  "spawn": "walker_mech",     "count": 3, "pattern": "line",   "x": -3, "spacing": 3 },
+  { "time": 62,  "spawn": "alien_core",      "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+  { "time": 66,  "spawn": "drone_carrier",   "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+  { "time": 70,  "spawn": "laser_destroyer",  "count": 3, "pattern": "random" },
+  { "time": 74,  "spawn": "missile_cruiser",  "count": 2, "pattern": "random" },
+  { "time": 78,  "spawn": "elite_interceptor","count": 5, "pattern": "random" },
+
+  { "time": 85,  "event": "powerup_rain",   "duration": 5 },
+
+  { "time": 92,  "spawn": "alien_core",      "count": 2, "pattern": "line",   "x": -3, "spacing": 6 },
+  { "time": 96,  "spawn": "drone_carrier",   "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+  { "time": 100, "spawn": "walker_mech",     "count": 3, "pattern": "random" },
+  { "time": 104, "spawn": "missile_cruiser",  "count": 3, "pattern": "random" },
+  { "time": 108, "spawn": "laser_destroyer",  "count": 3, "pattern": "random" },
+
+  { "time": 115, "event": "clear" },
+  { "time": 117, "event": "boss_warning" },
+  { "time": 125, "boss": "carrier_boss" }
+]

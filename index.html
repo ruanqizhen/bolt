@@ -10,8 +10,9 @@
 <body>
   <div id="game-container">
     <canvas id="game-canvas"></canvas>
+
     <!-- HUD Overlay -->
-    <div id="hud" class="hud">
+    <div id="hud" class="hud" style="display:none;">
       <div id="hud-score" class="hud-score">SCORE: 0</div>
       <div class="hud-right">
         <div id="hud-lives" class="hud-lives"></div>
@@ -24,8 +25,55 @@
           <div id="boss-hp-bar-fill" class="boss-hp-bar-fill"></div>
         </div>
       </div>
+      <div id="hud-level" class="hud-level"></div>
     </div>
-    <!-- FPS Counter (dev only) -->
+
+    <!-- Title Screen -->
+    <div id="screen-title" class="overlay-screen">
+      <div class="title-content">
+        <h1 class="game-title">BOLT<span class="title-cn">雷电</span></h1>
+        <div class="title-subtitle">2.5D Bullet Hell Shooter</div>
+        <button id="btn-start" class="menu-btn pulse">START GAME</button>
+        <div class="title-controls">
+          <div>WASD — Move &nbsp;&nbsp; Shift — Slow</div>
+          <div>J — Shoot &nbsp;&nbsp; K — Bomb</div>
+          <div>1/2/3 — Switch Weapon</div>
+        </div>
+        <div id="title-highscore" class="title-highscore"></div>
+      </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="screen-gameover" class="overlay-screen" style="display:none;">
+      <div class="overlay-content">
+        <h2 class="screen-heading red-glow">GAME OVER</h2>
+        <div id="gameover-score" class="screen-score"></div>
+        <button id="btn-continue" class="menu-btn">CONTINUE (<span id="continues-left">3</span>)</button>
+        <button id="btn-title" class="menu-btn secondary">TITLE SCREEN</button>
+      </div>
+    </div>
+
+    <!-- Level Clear Screen -->
+    <div id="screen-levelclear" class="overlay-screen" style="display:none;">
+      <div class="overlay-content">
+        <h2 class="screen-heading gold-glow">STAGE CLEAR!</h2>
+        <div id="levelclear-score" class="screen-score"></div>
+        <button id="btn-nextlevel" class="menu-btn pulse">NEXT STAGE</button>
+      </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="screen-victory" class="overlay-screen" style="display:none;">
+      <div class="overlay-content">
+        <h2 class="screen-heading rainbow-glow">VICTORY!</h2>
+        <div class="victory-msg">All 3 stages cleared!</div>
+        <div id="victory-score" class="screen-score"></div>
+        <button id="btn-restart" class="menu-btn pulse">PLAY AGAIN</button>
+        <button id="btn-title2" class="menu-btn secondary">TITLE SCREEN</button>
+      </div>
+    </div>
+
+    <!-- FPS Counter -->
     <div id="fps-counter" class="fps-counter">FPS: 0</div>
   </div>
   <script type="module" src="/src/main.ts"></script>

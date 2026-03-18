@@ -5,6 +5,8 @@ import { BulletManager } from './Bullet';
 import { DropManager } from './Drops';
 import { Boss } from './Boss';
 import { TankBoss } from './bosses/TankBoss';
+import { BomberBoss } from './bosses/BomberBoss';
+import { CarrierBoss } from './bosses/CarrierBoss';
 import { ParticleSystem } from '../systems/Particles';
 import { GameScene } from '../core/Scene';
 import { Player } from './Player';
@@ -15,7 +17,6 @@ import { CollisionSystem, EnemyHitbox } from '../systems/Collision';
 import { BombSystem } from './weapons/BombSystem';
 
 import enemyConfigs from '../assets/configs/enemies.json';
-import level1Data from '../assets/configs/level1.json';
 
 /** Level event entry from JSON */
 interface LevelEvent {
@@ -71,7 +72,7 @@ export class Level {
     private particles: ParticleSystem,
     private gameScene: GameScene,
   ) {
-    this.events = level1Data as LevelEvent[];
+    this.events = [];
     this.enemyAI = new EnemyAI();
     this.dropManager = new DropManager(scene);
     this.medalSystem = new MedalSystem();
@@ -91,6 +92,36 @@ export class Level {
       scene.add(enemy.mesh);
       this.enemies.push(enemy);
     }
+  }
+
+  /**
+   * Load level data and reset state for a new level.
+   */
+  loadLevel(levelData: LevelEvent[]): void {
+    this.events = levelData;
+    this.eventIndex = 0;
+    this.elapsed = 0;
+    this.isComplete = false;
+    this.bossDefeated = false;
+    this.bossWarningActive = false;
+    this.powerupRainDuration = 0;
+
+    // Clear enemies
+    for (const enemy of this.enemies) {
+      enemy.alive = false;
+      enemy.mesh.visible = false;
+    }
+
+    // Clear boss
+    if (this.currentBoss) {
+      this.currentBoss.dispose();
+      this.scene.remove(this.currentBoss.mesh);
+      this.currentBoss = null;
+    }
+
+    // Clear bullets
+    this.bulletManager.clearAll();
+    this.particles.clear();
   }
 
   update(
@@ -307,10 +338,21 @@ export class Level {
   }
 
   private spawnBoss(bossId: string): void {
-    if (bossId === 'tank_boss') {
-      this.currentBoss = new TankBoss(this.bulletManager, this.particles, this.gameScene);
-      this.scene.add(this.currentBoss.mesh);
+    switch (bossId) {
+      case 'tank_boss':
+        this.currentBoss = new TankBoss(this.bulletManager, this.particles, this.gameScene);
+        break;
+      case 'bomber_boss':
+        this.currentBoss = new BomberBoss(this.bulletManager, this.particles, this.gameScene);
+        break;
+      case 'carrier_boss':
+        this.currentBoss = new CarrierBoss(this.bulletManager, this.particles, this.gameScene);
+        break;
+      default:
+        console.warn(`[Level] Unknown boss: ${bossId}`);
+        return;
     }
+    this.scene.add(this.currentBoss.mesh);
   }
 
   private onEnemyKilled(enemy: Enemy, player: Player): void {

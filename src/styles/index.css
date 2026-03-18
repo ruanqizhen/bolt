@@ -24,7 +24,6 @@ html, body {
   left: 50%;
   transform: translate(-50%, -50%);
   overflow: hidden;
-  /* width & height are set dynamically by Renderer.ts */
 }
 
 #game-canvas {
@@ -71,6 +70,17 @@ html, body {
   text-shadow: 0 0 6px rgba(255, 100, 100, 0.5);
 }
 
+.hud-level {
+  position: absolute;
+  bottom: 32px;
+  right: 16px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
 /* ===== Boss HP Bar ===== */
 .hud-boss-hp {
   position: absolute;
@@ -81,9 +91,7 @@ html, body {
   max-width: 400px;
 }
 
-.hud-boss-hp.hidden {
-  display: none;
-}
+.hud-boss-hp.hidden { display: none; }
 
 .boss-hp-label {
   color: #ff3333;
@@ -129,8 +137,155 @@ html, body {
   pointer-events: none;
 }
 
+/* ===== Overlay Screens ===== */
+.overlay-screen {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 50;
+}
+
+.title-content, .overlay-content {
+  text-align: center;
+  color: #fff;
+}
+
+/* ===== Title Screen ===== */
+.game-title {
+  font-size: 72px;
+  font-weight: 900;
+  letter-spacing: 12px;
+  text-shadow: 0 0 30px rgba(0, 150, 255, 0.6), 0 0 60px rgba(0, 100, 255, 0.3);
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.title-cn {
+  display: block;
+  font-size: 28px;
+  letter-spacing: 16px;
+  color: rgba(0, 200, 255, 0.7);
+  text-shadow: 0 0 15px rgba(0, 200, 255, 0.4);
+  margin-top: 4px;
+}
+
+.title-subtitle {
+  font-size: 14px;
+  letter-spacing: 6px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 32px;
+}
+
+.title-controls {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.8;
+  margin-top: 24px;
+}
+
+.title-highscore {
+  font-size: 14px;
+  color: rgba(255, 200, 0, 0.7);
+  margin-top: 16px;
+  letter-spacing: 2px;
+}
+
+/* ===== Menu Buttons ===== */
+.menu-btn {
+  display: block;
+  width: 200px;
+  margin: 12px auto;
+  padding: 12px 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(0, 120, 255, 0.3), rgba(0, 80, 200, 0.5));
+  border: 1px solid rgba(0, 150, 255, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  pointer-events: all;
+}
+
+.menu-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 150, 255, 0.5), rgba(0, 100, 255, 0.7));
+  border-color: rgba(0, 200, 255, 0.8);
+  box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.menu-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  font-size: 13px;
+}
+
+.menu-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(0, 150, 255, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(0, 150, 255, 0.5); }
+}
+
+.menu-btn.pulse {
+  animation: pulse-glow 2s infinite;
+}
+
+/* ===== Screen Headings ===== */
+.screen-heading {
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 8px;
+  margin-bottom: 16px;
+}
+
+.red-glow {
+  color: #ff3333;
+  text-shadow: 0 0 30px rgba(255, 50, 50, 0.5);
+}
+
+.gold-glow {
+  color: #ffcc00;
+  text-shadow: 0 0 30px rgba(255, 200, 0, 0.5);
+}
+
+@keyframes rainbow {
+  0% { color: #ff0000; text-shadow: 0 0 30px rgba(255,0,0,0.5); }
+  33% { color: #00ff00; text-shadow: 0 0 30px rgba(0,255,0,0.5); }
+  66% { color: #0088ff; text-shadow: 0 0 30px rgba(0,136,255,0.5); }
+  100% { color: #ff0000; text-shadow: 0 0 30px rgba(255,0,0,0.5); }
+}
+
+.rainbow-glow {
+  animation: rainbow 3s infinite;
+}
+
+.screen-score {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 24px;
+  letter-spacing: 2px;
+}
+
+.victory-msg {
+  font-size: 16px;
+  color: rgba(255, 200, 0, 0.7);
+  margin-bottom: 8px;
+}
+
 /* ===== Mobile Controls ===== */
 @media (max-width: 768px) {
   .hud-score { font-size: 16px; }
   .hud-lives, .hud-bombs, .hud-weapon { font-size: 13px; }
+  .game-title { font-size: 48px; }
+  .title-cn { font-size: 20px; }
+  .screen-heading { font-size: 32px; }
 }

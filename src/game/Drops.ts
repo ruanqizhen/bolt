@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { TextureManager } from '../systems/TextureManager';
 
 /** Drop item types */
 export type DropType = 'powerup_red' | 'powerup_blue' | 'powerup_purple' | 'bomb' | 'medal';
@@ -18,9 +19,15 @@ export class DropItem {
   private static readonly LIFETIME = 8;
 
   constructor() {
-    const geom = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-    const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const geom = new THREE.PlaneGeometry(0.6, 0.6);
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      alphaTest: 0.1,
+      side: THREE.DoubleSide,
+    });
     this.mesh = new THREE.Mesh(geom, mat);
+    this.mesh.rotation.x = -Math.PI / 2;
     this.mesh.visible = false;
     this.position = this.mesh.position;
     this.type = 'medal';
@@ -33,15 +40,12 @@ export class DropItem {
     this.position.set(x, 0.3, z);
     this.mesh.visible = true;
 
-    // Color by type
+    // Set texture by type
+    const tm = TextureManager.getInstance();
     const mat = this.mesh.material as THREE.MeshBasicMaterial;
-    switch (type) {
-      case 'powerup_red':    mat.color.set(0xff4444); break;
-      case 'powerup_blue':   mat.color.set(0x4444ff); break;
-      case 'powerup_purple': mat.color.set(0xaa44ff); break;
-      case 'bomb':           mat.color.set(0xff8800); break;
-      case 'medal':          mat.color.set(0xffdd00); break;
-    }
+    mat.map = tm.getDrop(type);
+    mat.needsUpdate = true;
+    mat.color.setRGB(1, 1, 1);
   }
 
   update(deltaTime: number): void {

@@ -1,0 +1,39 @@
+[
+  { "time": 2,   "spawn": "interceptor",    "count": 3, "pattern": "line",   "x": 0, "spacing": 2 },
+  { "time": 5,   "spawn": "heavy_fighter",   "count": 2, "pattern": "random" },
+  { "time": 8,   "spawn": "laser_fighter",   "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+  { "time": 12,  "spawn": "interceptor",    "count": 4, "pattern": "random" },
+  { "time": 15,  "spawn": "aa_turret",      "count": 3, "pattern": "line",   "x": -3, "spacing": 3 },
+  { "time": 18,  "spawn": "missile_fighter", "count": 2, "pattern": "random" },
+  { "time": 22,  "spawn": "heavy_fighter",   "count": 3, "pattern": "line",   "x": 0, "spacing": 2.5 },
+
+  { "time": 28,  "spawn": "parasite_tank",   "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+  { "time": 32,  "spawn": "laser_tower",    "count": 2, "pattern": "line",   "x": -3, "spacing": 6 },
+  { "time": 35,  "spawn": "interceptor",    "count": 5, "pattern": "random" },
+  { "time": 38,  "spawn": "artillery_carrier","count": 1, "pattern": "fixed", "x": 0 },
+  { "time": 42,  "spawn": "missile_truck",   "count": 2, "pattern": "line",   "x": -3, "spacing": 6 },
+
+  { "time": 48,  "event": "powerup_rain",   "duration": 6 },
+  { "time": 50,  "spawn": "laser_fighter",   "count": 3, "pattern": "random" },
+
+  { "time": 58,  "spawn": "walker_mech",    "count": 1, "pattern": "fixed",  "x": 0 },
+  { "time": 62,  "spawn": "elite_interceptor","count": 2, "pattern": "random" },
+  { "time": 66,  "spawn": "bullet_tower",   "count": 3, "pattern": "line",   "x": -3, "spacing": 3 },
+  { "time": 70,  "spawn": "heavy_fighter",   "count": 4, "pattern": "random" },
+  { "time": 74,  "spawn": "missile_silo",   "count": 2, "pattern": "line",   "x": -3, "spacing": 6 },
+  { "time": 78,  "spawn": "elite_interceptor","count": 2, "pattern": "random" },
+  { "time": 82,  "spawn": "laser_destroyer", "count": 1, "pattern": "fixed",  "x": 0 },
+  { "time": 86,  "spawn": "walker_mech",    "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+
+  { "time": 92,  "event": "powerup_rain",   "duration": 5 },
+
+  { "time": 100, "spawn": "missile_cruiser", "count": 1, "pattern": "fixed",  "x": 2 },
+  { "time": 104, "spawn": "elite_interceptor","count": 3, "pattern": "random" },
+  { "time": 108, "spawn": "laser_destroyer", "count": 2, "pattern": "line",   "x": -2, "spacing": 4 },
+  { "time": 112, "spawn": "drone_carrier",  "count": 1, "pattern": "fixed",  "x": 0 },
+  { "time": 116, "spawn": "alien_core",     "count": 1, "pattern": "fixed",  "x": 0 },
+
+  { "time": 125, "event": "clear" },
+  { "time": 127, "event": "boss_warning" },
+  { "time": 135, "boss": "bomber_boss" }
+]
