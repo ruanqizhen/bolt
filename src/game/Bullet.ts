@@ -13,7 +13,7 @@ export class BulletData implements Poolable {
   age = 0;
   /** 'player' or 'enemy' */
   owner: 'player' | 'enemy' = 'player';
-  /** Visual type index (for color/size selection) */
+  /** Visual type: 0=vulcan, 1=laser, 2=homing (if projectile) */
   type = 0;
 
   reset(): void {
@@ -35,8 +35,13 @@ export class BulletManager {
   private playerPool: Pool<BulletData>;
   private enemyPool: Pool<BulletData>;
 
-  // InstancedMesh for rendering
-  private playerBulletMesh: THREE.InstancedMesh;
+  // Homing beams (visual only)
+  private homingBeams: HomingBeamVisual[] = [];
+  private static readonly MAX_HOMING_BEAMS = 20;
+
+  // InstancedMeshes for rendering different bullet types
+  private vulcanMesh: THREE.InstancedMesh;
+  private laserMesh: THREE.InstancedMesh;
   private enemyBulletMesh: THREE.InstancedMesh;
   private dummy = new THREE.Object3D();
 
@@ -58,17 +63,34 @@ export class BulletManager {
       BulletManager.ENEMY_POOL_SIZE
     );
 
-    // Player bullets — small cyan spheres
-    const pGeom = new THREE.SphereGeometry(0.08, 6, 6);
-    const pMat = new THREE.MeshBasicMaterial({ color: 0x00ffaa });
-    this.playerBulletMesh = new THREE.InstancedMesh(pGeom, pMat, BulletManager.PLAYER_POOL_SIZE);
-    this.playerBulletMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.playerBulletMesh.frustumCulled = false;
-    scene.add(this.playerBulletMesh);
+    // Initialize homing beam visuals
+    for (let i = 0; i < BulletManager.MAX_HOMING_BEAMS; i++) {
+      const beam = new HomingBeamVisual();
+      this.homingBeams.push(beam);
+      scene.add(beam.mesh);
+    }
 
-    // Enemy bullets — small red/orange spheres
-    const eGeom = new THREE.SphereGeometry(0.1, 6, 6);
-    const eMat = new THREE.MeshBasicMaterial({ color: 0xff3333 });
+    // Vulcan bullets — small red short lines
+    const vGeom = new THREE.PlaneGeometry(0.1, 0.4);
+    vGeom.rotateX(-Math.PI / 2); // Lay flat on XZ plane
+    const vMat = new THREE.MeshBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+    this.vulcanMesh = new THREE.InstancedMesh(vGeom, vMat, BulletManager.PLAYER_POOL_SIZE);
+    this.vulcanMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.vulcanMesh.frustumCulled = false;
+    scene.add(this.vulcanMesh);
+
+    // Laser bullets — blue light pillars
+    const lGeom = new THREE.PlaneGeometry(0.3, 1.2);
+    lGeom.rotateX(-Math.PI / 2);
+    const lMat = new THREE.MeshBasicMaterial({ color: 0x0033ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+    this.laserMesh = new THREE.InstancedMesh(lGeom, lMat, BulletManager.PLAYER_POOL_SIZE);
+    this.laserMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.laserMesh.frustumCulled = false;
+    scene.add(this.laserMesh);
+
+    // Enemy bullets — yellow spheres
+    const eGeom = new THREE.SphereGeometry(0.15, 6, 6);
+    const eMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
     this.enemyBulletMesh = new THREE.InstancedMesh(eGeom, eMat, BulletManager.ENEMY_POOL_SIZE);
     this.enemyBulletMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.enemyBulletMesh.frustumCulled = false;
@@ -78,12 +100,13 @@ export class BulletManager {
   /**
    * Spawn a player bullet.
    */
-  spawnPlayerBullet(x: number, z: number, vx: number, vz: number, damage = 10): BulletData | null {
+  spawnPlayerBullet(x: number, z: number, vx: number, vz: number, damage = 10, type = 0): BulletData | null {
     const bullet = this.playerPool.acquire();
     if (!bullet) return null;
     bullet.position.set(x, 0.2, z);
     bullet.velocity.set(vx, 0, vz);
     bullet.damage = damage;
+    bullet.type = type;
     bullet.owner = 'player';
     return bullet;
   }
@@ -111,8 +134,63 @@ export class BulletManager {
   update(deltaTime: number): void {
     this.updatePool(this.playerPool, deltaTime);
     this.updatePool(this.enemyPool, deltaTime);
-    this.updateInstancedMesh(this.playerPool, this.playerBulletMesh);
-    this.updateInstancedMesh(this.enemyPool, this.enemyBulletMesh);
+    
+    for (const beam of this.homingBeams) {
+      beam.update(deltaTime);
+    }
+    
+    // Separate player bullets by type for rendering
+    let vIdx = 0, lIdx = 0;
+    this.playerPool.forEach((bullet) => {
+      this.dummy.position.copy(bullet.position);
+      // Align bullet rotation to match velocity vector
+      const target = bullet.position.clone().add(bullet.velocity);
+      this.dummy.lookAt(target);
+      this.dummy.updateMatrix();
+      
+      if (bullet.type === 0) {
+        this.vulcanMesh.setMatrixAt(vIdx++, this.dummy.matrix);
+      } else if (bullet.type === 1) {
+        this.laserMesh.setMatrixAt(lIdx++, this.dummy.matrix);
+      }
+    });
+    
+    this.finalizeMesh(this.vulcanMesh, vIdx);
+    this.finalizeMesh(this.laserMesh, lIdx);
+
+    // Enemy bullets
+    let eIdx = 0;
+    this.enemyPool.forEach((bullet) => {
+      this.dummy.position.copy(bullet.position);
+      this.dummy.lookAt(bullet.position.clone().add(bullet.velocity));
+      this.dummy.updateMatrix();
+      this.enemyBulletMesh.setMatrixAt(eIdx++, this.dummy.matrix);
+    });
+    this.finalizeMesh(this.enemyBulletMesh, eIdx);
+  }
+
+  private finalizeMesh(mesh: THREE.InstancedMesh, activeCount: number): void {
+    // Hide unused instances
+    for (let i = activeCount; i < mesh.count; i++) {
+      this.dummy.position.set(0, -100, 0);
+      this.dummy.scale.set(0, 0, 0);
+      this.dummy.updateMatrix();
+      mesh.setMatrixAt(i, this.dummy.matrix);
+    }
+    this.dummy.scale.set(1, 1, 1);
+    
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.count = Math.max(activeCount, 1);
+  }
+
+  /**
+   * Draw a homing laser beam connecting two points.
+   */
+  drawHomingBeam(start: THREE.Vector3, end: THREE.Vector3): void {
+    const beam = this.homingBeams.find((b) => !b.active);
+    if (beam) {
+      beam.fire(start, end);
+    }
   }
 
   private updatePool(pool: Pool<BulletData>, deltaTime: number): void {
@@ -129,29 +207,6 @@ export class BulletManager {
         pool.release(bullet);
       }
     });
-  }
-
-  private updateInstancedMesh(pool: Pool<BulletData>, mesh: THREE.InstancedMesh): void {
-    let index = 0;
-    pool.forEach((bullet) => {
-      this.dummy.position.copy(bullet.position);
-      this.dummy.updateMatrix();
-      mesh.setMatrixAt(index, this.dummy.matrix);
-      index++;
-    });
-
-    // Hide unused instances by scaling to 0
-    for (let i = index; i < mesh.count; i++) {
-      this.dummy.position.set(0, -100, 0);
-      this.dummy.scale.set(0, 0, 0);
-      this.dummy.updateMatrix();
-      mesh.setMatrixAt(i, this.dummy.matrix);
-    }
-    // Reset scale for next frame
-    this.dummy.scale.set(1, 1, 1);
-
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.count = Math.max(index, 1);
   }
 
   /**
@@ -195,9 +250,80 @@ export class BulletManager {
   }
 
   dispose(): void {
-    this.playerBulletMesh.geometry.dispose();
-    (this.playerBulletMesh.material as THREE.Material).dispose();
+    this.vulcanMesh.geometry.dispose();
+    (this.vulcanMesh.material as THREE.Material).dispose();
+    this.laserMesh.geometry.dispose();
+    (this.laserMesh.material as THREE.Material).dispose();
     this.enemyBulletMesh.geometry.dispose();
     (this.enemyBulletMesh.material as THREE.Material).dispose();
+    
+    for (const beam of this.homingBeams) {
+      beam.dispose();
+    }
+  }
+}
+
+/**
+ * HomingBeamVisual — Manages a single curved beam rendered as a TubeGeometry.
+ */
+class HomingBeamVisual {
+  public mesh: THREE.Mesh;
+  public age = 0;
+  public active = false;
+  private static readonly LIFETIME = 0.2; // very short flash
+
+  constructor() {
+    const mat = new THREE.MeshBasicMaterial({ 
+      color: 0xcc33ff, // purple-red
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide
+    });
+    // Start with a small dummy geometry
+    const geom = new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0.1)), 2, 0.1, 4, false);
+    this.mesh = new THREE.Mesh(geom, mat);
+    this.mesh.visible = false;
+  }
+
+  fire(start: THREE.Vector3, end: THREE.Vector3): void {
+    this.active = true;
+    this.age = 0;
+    this.mesh.visible = true;
+
+    // Calculate a control point to make the curve flex outward
+    const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+    const dir = new THREE.Vector3().subVectors(end, start).normalize();
+    const dist = start.distanceTo(end);
+    
+    // Perpendicular vector for the bow effect
+    const perp = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(dist * 0.4);
+    if (Math.random() > 0.5) perp.negate();
+    
+    const control = mid.add(perp);
+    const curve = new THREE.QuadraticBezierCurve3(start, control, end);
+    
+    const geom = new THREE.TubeGeometry(curve, 12, 0.15, 6, false);
+    
+    this.mesh.geometry.dispose(); // prevent leak
+    this.mesh.geometry = geom;
+    
+    (this.mesh.material as THREE.MeshBasicMaterial).opacity = 0.8;
+  }
+
+  update(deltaTime: number): void {
+    if (!this.active) return;
+    this.age += deltaTime;
+    if (this.age > HomingBeamVisual.LIFETIME) {
+      this.active = false;
+      this.mesh.visible = false;
+    } else {
+      (this.mesh.material as THREE.MeshBasicMaterial).opacity = 0.8 * (1 - this.age / HomingBeamVisual.LIFETIME);
+    }
+  }
+  
+  dispose(): void {
+    this.mesh.geometry.dispose();
+    (this.mesh.material as THREE.Material).dispose();
   }
 }

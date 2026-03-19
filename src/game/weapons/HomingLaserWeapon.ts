@@ -13,7 +13,7 @@ export class HomingLaserWeapon implements Weapon {
 
   private cooldown = 0;
   private static readonly FIRE_RATE = 0.15;
-  private static readonly BULLET_SPEED = 18;
+  private static readonly BULLET_SPEED = 80;
   private static readonly DAMAGE = 8;
 
   /** Number of homing projectiles per level */
@@ -37,11 +37,13 @@ export class HomingLaserWeapon implements Weapon {
     for (let i = 0; i < targetCount; i++) {
       let vx = 0;
       let vz = -HomingLaserWeapon.BULLET_SPEED;
+      let targetPos: THREE.Vector3 | null = null;
 
       if (i < sorted.length) {
         // Aim toward the target
+        targetPos = sorted[i].pos;
         const dir = new THREE.Vector3()
-          .subVectors(sorted[i].pos, playerPos)
+          .subVectors(targetPos, playerPos)
           .normalize();
         vx = dir.x * HomingLaserWeapon.BULLET_SPEED;
         vz = dir.z * HomingLaserWeapon.BULLET_SPEED;
@@ -50,16 +52,31 @@ export class HomingLaserWeapon implements Weapon {
         const angle = (i - targetCount / 2) * 0.3;
         vx = Math.sin(angle) * HomingLaserWeapon.BULLET_SPEED;
         vz = -Math.cos(angle) * HomingLaserWeapon.BULLET_SPEED;
+        targetPos = new THREE.Vector3(
+          playerPos.x + vx * 0.5,
+          0,
+          playerPos.z + vz * 0.5
+        );
       }
 
       const offsetX = (i - (targetCount - 1) / 2) * 0.4;
+      const spawnX = playerPos.x + offsetX;
+      const spawnZ = playerPos.z - 0.3;
 
+      // Draw the visual beam
+      bulletManager.drawHomingBeam(
+        new THREE.Vector3(spawnX, 0.2, spawnZ),
+        targetPos.clone()
+      );
+
+      // Spawn invisible projectile for collision (type 2 is not rendered by BulletManager)
       bulletManager.spawnPlayerBullet(
-        playerPos.x + offsetX,
-        playerPos.z - 0.3,
+        spawnX,
+        spawnZ,
         vx,
         vz,
-        HomingLaserWeapon.DAMAGE
+        HomingLaserWeapon.DAMAGE,
+        2
       );
     }
 

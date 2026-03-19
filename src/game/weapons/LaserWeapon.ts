@@ -40,7 +40,8 @@ export class LaserWeapon implements Weapon {
         playerPos.z - 0.5,
         0,
         -LaserWeapon.BULLET_SPEED,
-        damagePerBullet
+        damagePerBullet,
+        1 // Type 1: Blue Laser
       );
     }
 
