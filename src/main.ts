@@ -16,6 +16,7 @@ import { HomingLaserWeapon } from './game/weapons/HomingLaserWeapon';
 import { BombSystem } from './game/weapons/BombSystem';
 import { Level } from './game/Level';
 import { GameState, GameScreen } from './game/GameState';
+import { WeaponType } from './game/weapons/WeaponFactory';
 
 import level1Data from './assets/configs/level1.json';
 import level2Data from './assets/configs/level2.json';
@@ -124,18 +125,29 @@ class Game {
       this.gameScene.scene,
       this.bulletManager,
       this.particles,
-      this.gameScene
+      this.gameScene,
+      this.audio
     );
   }
 
   private setupButtons(): void {
+    // Add hover sounds to all buttons
+    document.querySelectorAll('.menu-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        this.audio.playSfx('menu_hover');
+      });
+    });
+
     document.getElementById('btn-start')?.addEventListener('click', () => {
+      this.audio.playSfx('menu_select');
       this.audio.init();
       this.startGame();
     });
 
     document.getElementById('btn-continue')?.addEventListener('click', () => {
+      this.audio.playSfx('menu_select');
       if (this.state.useContinue()) {
+        this.audio.playSfx('continue');
         this.player.respawn();
         this.showScreen('playing');
         this.updateHUD();
@@ -143,21 +155,25 @@ class Game {
     });
 
     document.getElementById('btn-title')?.addEventListener('click', () => {
+      this.audio.playSfx('menu_select');
       this.state.reset();
       this.showScreen('title');
     });
 
     document.getElementById('btn-nextlevel')?.addEventListener('click', () => {
+      this.audio.playSfx('menu_select');
       this.state.nextLevel();
       this.startLevel(this.state.currentLevel);
       this.showScreen('playing');
     });
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
+      this.audio.playSfx('menu_select');
       this.startGame();
     });
 
     document.getElementById('btn-title2')?.addEventListener('click', () => {
+      this.audio.playSfx('menu_select');
       this.state.reset();
       this.showScreen('title');
     });
@@ -200,7 +216,7 @@ class Game {
     this.weaponFactory.resetLevel();
     this.startLevel(1);
     this.showScreen('playing');
-    this.audio.startBGM();
+    this.audio.startBGM('stage1');
   }
 
   private startLevel(levelNum: number): void {
@@ -213,10 +229,16 @@ class Game {
 
     if (levelNum === 3) {
       this.gameScene.setEnvironment('ocean');
+      this.audio.transitionBGM('stage3', 0.5);
+    } else if (levelNum === 2) {
+      this.gameScene.setEnvironment('land');
+      this.audio.transitionBGM('stage2', 0.5);
     } else {
       this.gameScene.setEnvironment('land');
+      this.audio.transitionBGM('stage1', 0.5);
     }
 
+    this.audio.playSfx('level_start');
     this.updateHUD();
   }
 
@@ -247,6 +269,7 @@ class Game {
         if (this.screens.levelclear) this.screens.levelclear.style.display = 'flex';
         const el = document.getElementById('levelclear-score');
         if (el) el.textContent = `SCORE: ${this.player.score.toLocaleString()}`;
+        this.audio.playSfx('level_clear');
         break;
       }
       case 'victory': {
@@ -254,6 +277,8 @@ class Game {
         const el = document.getElementById('victory-score');
         if (el) el.textContent = `FINAL SCORE: ${this.player.score.toLocaleString()}`;
         this.state.saveHighScore(this.player.score);
+        this.audio.playSfx('victory');
+        this.audio.startBGM('victory');
         break;
       }
     }
@@ -276,10 +301,11 @@ class Game {
 
     // 3. Check player death
     if (!this.player.isAlive) {
-      this.audio.playSfx('explosion');
+      this.audio.playSfx('explosion_large', { x: this.player.position.x, z: this.player.position.z });
       this.state.saveHighScore(this.player.score);
       this.state.gameOver();
       this.showScreen('game_over');
+      this.audio.playSfx('game_over');
       this.audio.stopBGM();
       return;
     }
@@ -289,8 +315,15 @@ class Game {
     this.homingWeapon.enemyPositions = this.level.getAliveEnemyPositions();
 
     if (inputState.shoot && this.player.isAlive) {
+      const weaponType = this.weaponFactory.currentType;
       if (this.weaponFactory.fire(this.player.position, this.bulletManager, deltaTime)) {
-        this.audio.playSfx('shoot');
+        // Play weapon-specific sound
+        const sfxMap: Record<WeaponType, 'shoot_vulcan' | 'shoot_laser' | 'shoot_homing'> = {
+          vulcan: 'shoot_vulcan',
+          laser: 'shoot_laser',
+          homing: 'shoot_homing',
+        };
+        this.audio.playSfx(sfxMap[weaponType], { x: this.player.position.x, z: this.player.position.z });
       }
     }
 
@@ -298,7 +331,7 @@ class Game {
     if (inputState.bomb && this.player.bombs > 0 && this.player.isAlive && !this.bombSystem.active) {
       this.player.bombs--;
       this.bombSystem.trigger(this.player.position, this.bulletManager, this.particles, this.gameScene);
-      this.audio.playSfx('bomb');
+      this.audio.playSfx('bomb', { x: this.player.position.x, z: this.player.position.z });
     }
 
     // 6. Level system

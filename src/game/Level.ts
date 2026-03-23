@@ -15,6 +15,7 @@ import { DifficultyManager } from './DifficultyManager';
 import { WeaponFactory } from './weapons/WeaponFactory';
 import { CollisionSystem, EnemyHitbox } from '../systems/Collision';
 import { BombSystem } from './weapons/BombSystem';
+import { AudioManager } from '../systems/Audio';
 
 import enemyConfigs from '../assets/configs/enemies.json';
 
@@ -71,6 +72,7 @@ export class Level {
     private bulletManager: BulletManager,
     private particles: ParticleSystem,
     private gameScene: GameScene,
+    private audio?: AudioManager,
   ) {
     this.events = [];
     this.enemyAI = new EnemyAI();
@@ -225,6 +227,10 @@ export class Level {
       this.gameScene.spawnExplosionLight(player.position.clone(), 0xff4400, 4);
       weaponFactory.resetLevel();
       this.medalSystem.breakChain();
+      // Play hit sound
+      if (this.audio) {
+        this.audio.playSfx('hit', { x: player.position.x, z: player.position.z });
+      }
     }
 
     // Bullet hits
@@ -239,6 +245,10 @@ export class Level {
         if (!this.currentBoss.alive) {
           player.score += this.currentBoss.score;
           this.bossDefeated = true;
+          // Play boss explosion sound
+          if (this.audio) {
+            this.audio.playSfx('explosion_boss', { x: this.currentBoss.position.x, z: this.currentBoss.position.z });
+          }
         }
         continue;
       }
@@ -264,14 +274,25 @@ export class Level {
       if (dropType === 'medal') {
         const medalScore = this.medalSystem.collect(true);
         player.score += medalScore;
+        // Play medal sound
+        if (this.audio) {
+          this.audio.playSfx('medal', { x: player.position.x, z: player.position.z });
+        }
       } else if (dropType === 'bomb') {
         player.bombs = Math.min(player.bombs + 1, 9);
+        if (this.audio) {
+          this.audio.playSfx('powerup', { x: player.position.x, z: player.position.z });
+        }
       } else if (dropType.startsWith('powerup_')) {
         const color = dropType.replace('powerup_', '');
         const weaponMap: Record<string, 'vulcan' | 'laser' | 'homing'> = {
           red: 'vulcan', blue: 'laser', purple: 'homing'
         };
         weaponFactory.pickup(weaponMap[color] || 'vulcan');
+        // Play powerup sound
+        if (this.audio) {
+          this.audio.playSfx('powerup', { x: player.position.x, z: player.position.z });
+        }
       }
       this.particles.emit('spark', player.position.x, 0.5, player.position.z);
     }
@@ -302,6 +323,10 @@ export class Level {
       // Show boss HP bar
       const bossHp = document.getElementById('hud-boss-hp');
       if (bossHp) bossHp.classList.remove('hidden');
+      // Play boss warning sound
+      if (this.audio) {
+        this.audio.playSfx('boss_warning');
+      }
     } else if (event.boss) {
       this.spawnBoss(event.boss);
     }
@@ -360,6 +385,18 @@ export class Level {
     this.particles.emit('explosion', enemy.position.x, 0.5, enemy.position.z);
     this.particles.emit('smoke', enemy.position.x, 0.3, enemy.position.z);
     this.gameScene.spawnExplosionLight(enemy.position.clone(), 0xff6600, 3);
+
+    // Play explosion sound based on enemy tier
+    if (this.audio) {
+      const tier = enemy.config.tier;
+      if (tier === 'scout') {
+        this.audio.playSfx('explosion_small', { x: enemy.position.x, z: enemy.position.z });
+      } else if (tier === 'fighter' || tier === 'heavy') {
+        this.audio.playSfx('explosion_medium', { x: enemy.position.x, z: enemy.position.z });
+      } else if (tier === 'turret' || tier === 'elite') {
+        this.audio.playSfx('explosion_large', { x: enemy.position.x, z: enemy.position.z });
+      }
+    }
 
     // Roll for drops
     const dropResult = enemy.rollDrop();

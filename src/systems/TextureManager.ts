@@ -32,8 +32,6 @@ export class TextureManager {
       'enemies/drone_carrier.png', 'enemies/alien_core.png', 'enemies/fairy.png', 'enemies/ufo.png',
       // Bosses
       'bosses/tank_boss.png', 'bosses/bomber_boss.png', 'bosses/carrier_boss.png',
-      // Bullets
-      'bullets/player_bullet.png', 'bullets/enemy_bullet.png',
       // Drops
       'drops/powerup_red.png', 'drops/powerup_blue.png', 'drops/powerup_purple.png',
       'drops/bomb.png', 'drops/medal.png',
