@@ -7,6 +7,7 @@ import { ParticleSystem } from './systems/Particles';
 import { CollisionSystem } from './systems/Collision';
 import { AudioManager } from './systems/Audio';
 import { TextureManager } from './systems/TextureManager';
+import { PostProcessor } from './core/PostProcessor';
 import { Player } from './game/Player';
 import { BulletManager } from './game/Bullet';
 import { WeaponFactory } from './game/weapons/WeaponFactory';
@@ -34,6 +35,7 @@ class Game {
   private gameLoop: GameLoop;
   private input: Input;
   private audio: AudioManager;
+  private postProcessor: PostProcessor;
 
   // Systems
   private player!: Player;
@@ -66,6 +68,20 @@ class Game {
     this.input = new Input();
     this.audio = new AudioManager();
     this.state = new GameState();
+
+    // Post-processing with Bloom
+    const gameSize = this.renderer.getGamePixelSize();
+    this.postProcessor = new PostProcessor(
+      this.renderer.renderer,
+      this.gameScene.scene,
+      this.camera.camera,
+      gameSize.width,
+      gameSize.height
+    );
+    // Enhanced bloom for modern look
+    this.postProcessor.setBloomStrength(1.8);
+    this.postProcessor.setBloomRadius(0.5);
+    this.postProcessor.setBloomThreshold(0.1);
 
     // UI elements
     this.screens.title = document.getElementById('screen-title');
@@ -360,7 +376,7 @@ class Game {
   }
 
   private render(): void {
-    this.renderer.render(this.gameScene.scene, this.camera.camera);
+    this.postProcessor.render();
   }
 
   private updateHUD(): void {

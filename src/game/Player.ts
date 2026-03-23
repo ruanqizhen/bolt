@@ -34,6 +34,8 @@ export class Player {
   private bodyMesh!: THREE.Mesh;
   private hitboxMesh!: THREE.Mesh;
   private thrusterMesh!: THREE.Mesh;
+  private shieldMesh!: THREE.Mesh;
+  private glowMesh!: THREE.Mesh;
   private flashTimer = 0;
 
   constructor() {
@@ -58,28 +60,73 @@ export class Player {
     this.bodyMesh.position.y = 0.15;
     this.mesh.add(this.bodyMesh);
 
-    // Hitbox glow
+    // Hitbox glow (center point for danmaku games)
     const hitboxGeom = new THREE.SphereGeometry(Player.HITBOX_RADIUS, 16, 16);
     const hitboxMat = new THREE.MeshBasicMaterial({
       color: 0x00ffff,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
     });
     this.hitboxMesh = new THREE.Mesh(hitboxGeom, hitboxMat);
     this.hitboxMesh.position.y = 0.15;
     this.mesh.add(this.hitboxMesh);
 
-    // Thruster flame
-    const thrusterGeom = new THREE.ConeGeometry(0.12, 0.5, 8);
+    // Energy shield (visible when invincible)
+    const shieldGeom = new THREE.SphereGeometry(1.5, 32, 32);
+    const shieldMat = new THREE.MeshBasicMaterial({
+      color: 0x4488ff,
+      transparent: true,
+      opacity: 0.3,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    });
+    this.shieldMesh = new THREE.Mesh(shieldGeom, shieldMat);
+    this.shieldMesh.position.y = 0.1;
+    this.shieldMesh.visible = false;
+    this.mesh.add(this.shieldMesh);
+
+    // Outer glow effect
+    const glowGeom = new THREE.RingGeometry(0.8, 1.0, 32);
+    const glowMat = new THREE.MeshBasicMaterial({
+      color: 0x00aaff,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    this.glowMesh = new THREE.Mesh(glowGeom, glowMat);
+    this.glowMesh.rotation.x = -Math.PI / 2;
+    this.glowMesh.position.y = 0.05;
+    this.glowMesh.visible = false;
+    this.mesh.add(this.glowMesh);
+
+    // Thruster flame (animated)
+    const thrusterGeom = new THREE.ConeGeometry(0.15, 0.6, 8);
     const thrusterMat = new THREE.MeshBasicMaterial({
       color: 0xff6600,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
     });
     this.thrusterMesh = new THREE.Mesh(thrusterGeom, thrusterMat);
-    this.thrusterMesh.position.set(0, 0.08, 0.55);
+    this.thrusterMesh.position.set(0, 0.08, 0.6);
     this.thrusterMesh.rotation.x = Math.PI / 2;
     this.mesh.add(this.thrusterMesh);
+
+    // Secondary thruster particles (inner blue core)
+    const innerThrusterGeom = new THREE.ConeGeometry(0.08, 0.4, 8);
+    const innerThrusterMat = new THREE.MeshBasicMaterial({
+      color: 0x66ccff,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+    });
+    const innerThruster = new THREE.Mesh(innerThrusterGeom, innerThrusterMat);
+    innerThruster.position.set(0, 0.08, 0.55);
+    innerThruster.rotation.x = Math.PI / 2;
+    this.mesh.add(innerThruster);
   }
 
   update(deltaTime: number, input: InputState, dragDelta: { dx: number; dy: number } | null, camera: Camera): void {
@@ -107,28 +154,40 @@ export class Player {
     // Tilt when moving laterally
     this.bodyMesh.rotation.z = -input.moveX * 0.3;
 
-    // --- Invincibility ---
+    // --- Invincibility shield ---
     if (this.isInvincible) {
       this.invincibleTimer -= deltaTime;
       this.flashTimer += deltaTime;
-      // Flash effect
+      // Shield visible
+      this.shieldMesh.visible = true;
+      this.glowMesh.visible = true;
+      // Pulse shield
+      const shieldScale = 1 + Math.sin(this.flashTimer * 10) * 0.1;
+      this.shieldMesh.scale.set(shieldScale, shieldScale, shieldScale);
+      (this.shieldMesh.material as THREE.MeshBasicMaterial).opacity = 0.3 + Math.sin(this.flashTimer * 5) * 0.1;
+      // Flash body
       this.mesh.visible = Math.sin(this.flashTimer * 20) > 0;
       if (this.invincibleTimer <= 0) {
         this.isInvincible = false;
         this.mesh.visible = true;
+        this.shieldMesh.visible = false;
+        this.glowMesh.visible = false;
       }
     }
 
     // --- Thruster animation ---
-    const thrusterScale = 0.8 + Math.sin(performance.now() * 0.015) * 0.3;
+    const time = performance.now() * 0.001;
+    const thrusterScale = 0.7 + Math.sin(time * 30) * 0.3 + Math.sin(time * 45) * 0.2;
     this.thrusterMesh.scale.y = thrusterScale;
-    (this.thrusterMesh.material as THREE.MeshBasicMaterial).opacity = 0.5 + Math.sin(performance.now() * 0.02) * 0.3;
+    this.thrusterMesh.scale.x = 1 + Math.sin(time * 25) * 0.2;
+    this.thrusterMesh.scale.z = 1 + Math.sin(time * 25) * 0.2;
+    (this.thrusterMesh.material as THREE.MeshBasicMaterial).opacity = 0.6 + Math.sin(time * 30) * 0.3;
 
     // --- Hitbox pulse when shooting ---
     if (input.shoot) {
-      (this.hitboxMesh.material as THREE.MeshBasicMaterial).opacity = 0.4 + Math.sin(performance.now() * 0.01) * 0.4;
+      (this.hitboxMesh.material as THREE.MeshBasicMaterial).opacity = 0.6 + Math.sin(time * 20) * 0.3;
     } else {
-      (this.hitboxMesh.material as THREE.MeshBasicMaterial).opacity = 0.8;
+      (this.hitboxMesh.material as THREE.MeshBasicMaterial).opacity = 0.9;
     }
   }
 

@@ -13,7 +13,10 @@ export class GameScene {
   private cloudPlane!: THREE.Mesh;
   private groundTexture!: THREE.Texture;
   private cloudTexture!: THREE.Texture;
-  
+
+  // Starfield
+  private starfield!: THREE.Points;
+
   // Materials
   private groundMat!: THREE.MeshLambertMaterial;
   private oceanMat!: THREE.ShaderMaterial;
@@ -30,21 +33,22 @@ export class GameScene {
 
   constructor() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a0a1a);
-    this.scene.fog = new THREE.FogExp2(0x0a0a1a, 0.008);
+    this.scene.background = new THREE.Color(0x050510);
+    this.scene.fog = new THREE.FogExp2(0x050510, 0.015);
 
     this.setupLighting();
+    this.createStarfield();
     this.createGroundLayer();
     this.createCloudLayer();
   }
 
   private setupLighting(): void {
     // Ambient base
-    this.ambientLight = new THREE.AmbientLight(0x334466, 0.6);
+    this.ambientLight = new THREE.AmbientLight(0x445588, 0.8);
     this.scene.add(this.ambientLight);
 
     // Directional sun light with shadows
-    this.sunLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+    this.sunLight = new THREE.DirectionalLight(0xffeedd, 1.5);
     this.sunLight.position.set(5, 20, 10);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.width = 2048;
@@ -56,6 +60,63 @@ export class GameScene {
     this.sunLight.shadow.camera.top = 20;
     this.sunLight.shadow.camera.bottom = -20;
     this.scene.add(this.sunLight);
+
+    // Rim light for dramatic effect
+    const rimLight = new THREE.DirectionalLight(0x6688ff, 0.5);
+    rimLight.position.set(-10, 5, -10);
+    this.scene.add(rimLight);
+  }
+
+  private createStarfield(): void {
+    // Create 2000 stars
+    const starGeometry = new THREE.BufferGeometry();
+    const starCount = 2000;
+    const positions = new Float32Array(starCount * 3);
+    const colors = new Float32Array(starCount * 3);
+    const sizes = new Float32Array(starCount);
+
+    for (let i = 0; i < starCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 200;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 200;
+      positions[i * 3 + 2] = -50 - Math.random() * 50;
+
+      // Vary star colors slightly (white to blue to yellow)
+      const colorChoice = Math.random();
+      if (colorChoice < 0.6) {
+        // White
+        colors[i * 3] = 1;
+        colors[i * 3 + 1] = 1;
+        colors[i * 3 + 2] = 1;
+      } else if (colorChoice < 0.8) {
+        // Blue
+        colors[i * 3] = 0.7;
+        colors[i * 3 + 1] = 0.8;
+        colors[i * 3 + 2] = 1;
+      } else {
+        // Yellow
+        colors[i * 3] = 1;
+        colors[i * 3 + 1] = 0.9;
+        colors[i * 3 + 2] = 0.7;
+      }
+
+      sizes[i] = Math.random() * 2 + 0.5;
+    }
+
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    starGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+    const starMaterial = new THREE.PointsMaterial({
+      size: 0.5,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    this.starfield = new THREE.Points(starGeometry, starMaterial);
+    this.scene.add(this.starfield);
   }
 
   private createGroundLayer(): void {
@@ -67,11 +128,11 @@ export class GameScene {
 
     // Use more segments for vertex displacement
     const groundGeom = new THREE.PlaneGeometry(80, 80, 64, 64);
-    
+
     this.groundMat = new THREE.MeshLambertMaterial({
       map: this.groundTexture,
     });
-    
+
     // Ocean shader material using Gerstner-like waves
     this.oceanMat = new THREE.ShaderMaterial({
       uniforms: {
@@ -88,14 +149,14 @@ export class GameScene {
         void main() {
           vUv = uv;
           vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-          
+
           // Gerstner-like wave displacement
           float elevation = sin(modelPosition.x * 0.5 + uTime * 1.5) * 0.4
                           + sin(modelPosition.y * 0.8 + uTime * 2.0) * 0.4;
-                          
+
           modelPosition.z += elevation; // z is up due to rotation.x = -PI/2
           vElevation = elevation;
-          
+
           gl_Position = projectionMatrix * viewMatrix * modelPosition;
         }
       `,
@@ -104,7 +165,7 @@ export class GameScene {
         uniform vec3 uColorDeep;
         uniform vec3 uColorShallow;
         uniform vec3 uGridColor;
-        
+
         varying vec2 vUv;
         varying float vElevation;
 
@@ -112,18 +173,18 @@ export class GameScene {
           // Mix colors based on elevation
           float mixStrength = (vElevation + 0.8) * 0.5;
           vec3 color = mix(uColorDeep, uColorShallow, mixStrength);
-          
+
           // Add a subtle tech grid over the ocean
           float gridX = step(0.98, fract(vUv.x * 40.0));
           float gridY = step(0.98, fract(vUv.y * 40.0));
           float grid = max(gridX, gridY);
-          
+
           // Add foam on wave peaks
           float foam = step(0.65, vElevation);
-          
+
           color += uGridColor * grid * 0.3;
           color += vec3(1.0) * foam * 0.5;
-          
+
           gl_FragColor = vec4(color, 1.0);
         }
       `,
@@ -172,14 +233,19 @@ export class GameScene {
    */
   update(deltaTime: number): void {
     this.time += deltaTime;
-    
+
     if (this.currentEnv === 'land') {
       this.groundTexture.offset.y += this.groundSpeed * deltaTime * 0.05;
     } else {
       this.oceanMat.uniforms.uTime.value = this.time;
     }
-    
+
     this.cloudTexture.offset.y += this.cloudSpeed * deltaTime * 0.05;
+
+    // Twinkle stars
+    if (this.starfield) {
+      this.starfield.rotation.z += 0.0001;
+    }
   }
 
   /**

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 /**
  * ParticleSystem — GPU-instanced particle effects for explosions, smoke, sparks, and thruster flames.
+ * Enhanced with more particles and better visual effects.
  */
 
 interface Particle {
@@ -12,9 +13,11 @@ interface Particle {
   color: THREE.Color;
   size: number;
   active: boolean;
+  rotation: number;
+  rotationSpeed: number;
 }
 
-export type ParticlePreset = 'explosion' | 'smoke' | 'spark' | 'thruster';
+export type ParticlePreset = 'explosion' | 'smoke' | 'spark' | 'thruster' | 'shockwave' | 'debris';
 
 const PRESET_CONFIG: Record<ParticlePreset, {
   count: number;
@@ -23,38 +26,61 @@ const PRESET_CONFIG: Record<ParticlePreset, {
   size: number;
   colors: number[];
   gravity: number;
+  spread: number;
 }> = {
   explosion: {
-    count: 40,
-    speed: 8,
-    life: 0.5,
-    size: 0.15,
-    colors: [0xff6600, 0xff3300, 0xffaa00, 0xff0000],
+    count: 60,
+    speed: 10,
+    life: 0.6,
+    size: 0.2,
+    colors: [0xff6600, 0xff3300, 0xffaa00, 0xff0000, 0xffff00],
     gravity: -2,
+    spread: 1.0,
   },
   smoke: {
-    count: 15,
-    speed: 1.5,
-    life: 1.0,
-    size: 0.25,
-    colors: [0x555555, 0x444444, 0x666666],
+    count: 25,
+    speed: 2,
+    life: 1.2,
+    size: 0.35,
+    colors: [0x666666, 0x555555, 0x777777, 0x444444],
     gravity: 0.5,
+    spread: 0.5,
   },
   spark: {
-    count: 25,
-    speed: 12,
-    life: 0.3,
-    size: 0.06,
-    colors: [0xffffaa, 0xffff66, 0xffffff],
+    count: 40,
+    speed: 15,
+    life: 0.4,
+    size: 0.08,
+    colors: [0xffffaa, 0xffff66, 0xffffff, 0xffaa00],
     gravity: -5,
+    spread: 1.0,
   },
   thruster: {
-    count: 8,
-    speed: 3,
-    life: 0.2,
-    size: 0.08,
-    colors: [0xff6600, 0x4488ff, 0xffffff],
+    count: 12,
+    speed: 4,
+    life: 0.25,
+    size: 0.1,
+    colors: [0xff6600, 0x4488ff, 0xffffff, 0x66ccff],
     gravity: 0,
+    spread: 0.3,
+  },
+  shockwave: {
+    count: 1,
+    speed: 20,
+    life: 0.4,
+    size: 0.5,
+    colors: [0xffffff],
+    gravity: 0,
+    spread: 1.0,
+  },
+  debris: {
+    count: 15,
+    speed: 6,
+    life: 1.0,
+    size: 0.15,
+    colors: [0x886644, 0x665544, 0x554433, 0x776655],
+    gravity: -3,
+    spread: 0.8,
   },
 };
 
@@ -63,7 +89,7 @@ export class ParticleSystem {
   private mesh: THREE.InstancedMesh;
   private dummy = new THREE.Object3D();
   private colorAttr: THREE.InstancedBufferAttribute;
-  private static readonly MAX_PARTICLES = 2000;
+  private static readonly MAX_PARTICLES = 4000;
 
   constructor(scene: THREE.Scene) {
     const geom = new THREE.PlaneGeometry(1, 1);
@@ -73,6 +99,7 @@ export class ParticleSystem {
       depthWrite: false,
       side: THREE.DoubleSide,
       vertexColors: true,
+      blending: THREE.AdditiveBlending,
     });
 
     this.mesh = new THREE.InstancedMesh(geom, mat, ParticleSystem.MAX_PARTICLES);
@@ -96,6 +123,8 @@ export class ParticleSystem {
         color: new THREE.Color(),
         size: 0.1,
         active: false,
+        rotation: 0,
+        rotationSpeed: 0,
       });
     }
   }
@@ -112,9 +141,9 @@ export class ParticleSystem {
 
       p.position.set(x, y, z);
 
-      // Random direction
+      // Random direction with spread
       const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI - Math.PI / 2;
+      const phi = (Math.random() - 0.5) * Math.PI * config.spread;
       const spd = config.speed * (0.5 + Math.random() * 0.5);
       p.velocity.set(
         Math.cos(theta) * Math.cos(phi) * spd,
@@ -126,6 +155,8 @@ export class ParticleSystem {
       p.maxLife = p.life;
       p.size = config.size * (0.8 + Math.random() * 0.4);
       p.color.set(config.colors[Math.floor(Math.random() * config.colors.length)]);
+      p.rotation = Math.random() * Math.PI * 2;
+      p.rotationSpeed = (Math.random() - 0.5) * 10;
       p.active = true;
     }
   }
@@ -146,6 +177,7 @@ export class ParticleSystem {
       p.position.add(p.velocity.clone().multiplyScalar(deltaTime));
       p.velocity.y += -3 * deltaTime; // Global gravity
       p.life -= deltaTime;
+      p.rotation += p.rotationSpeed * deltaTime;
 
       if (p.life <= 0) {
         p.active = false;
@@ -155,8 +187,8 @@ export class ParticleSystem {
       const alpha = p.life / p.maxLife;
 
       this.dummy.position.copy(p.position);
+      this.dummy.rotation.set(Math.PI / 2, 0, p.rotation);
       this.dummy.scale.set(p.size * alpha, p.size * alpha, p.size * alpha);
-      this.dummy.lookAt(this.dummy.position.x, this.dummy.position.y + 1, this.dummy.position.z);
       this.dummy.updateMatrix();
 
       this.mesh.setMatrixAt(visibleCount, this.dummy.matrix);

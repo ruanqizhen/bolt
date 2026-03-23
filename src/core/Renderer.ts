@@ -19,9 +19,10 @@ export class Renderer {
 
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: true,
+      antialias: false, // Disabled for post-processing
       alpha: false,
       powerPreference: 'high-performance',
+      preserveDrawingBuffer: true,
     });
 
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -62,6 +63,7 @@ export class Renderer {
 
     // Resize the renderer to the game area
     this.renderer.setSize(width, height);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     // Position the container centered (CSS handles the centering,
     // but we set explicit width/height on the container)
