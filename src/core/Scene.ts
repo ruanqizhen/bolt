@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { TextureManager } from '../systems/TextureManager';
+import { ProceduralBackgroundGenerator } from './ProceduralBackgroundGenerator';
 
 /**
  * GameScene — Manages the Three.js scene, multi-layer parallax scrolling,
@@ -12,10 +13,13 @@ export class GameScene {
   private groundPlane!: THREE.Mesh;
   private cloudPlane!: THREE.Mesh;
   private groundTexture!: THREE.Texture;
-  private cloudTexture!: THREE.Texture;
+  private cloudTexture: THREE.Texture | null = null;
 
   // Starfield
   private starfield!: THREE.Points;
+
+  // Procedural background (forests and lakes)
+  private bgGenerator: ProceduralBackgroundGenerator | null = null;
 
   // Materials
   private groundMat!: THREE.MeshLambertMaterial;
@@ -40,6 +44,9 @@ export class GameScene {
     this.createStarfield();
     this.createGroundLayer();
     this.createCloudLayer();
+
+    // Initialize procedural background for land environment
+    this.bgGenerator = new ProceduralBackgroundGenerator(this.scene);
   }
 
   private setupLighting(): void {
@@ -203,29 +210,84 @@ export class GameScene {
     this.currentEnv = type;
     if (type === 'ocean') {
       this.groundPlane.material = this.oceanMat;
+      // Hide procedural background for ocean
+      if (this.bgGenerator) {
+        this.bgGenerator.dispose();
+        this.bgGenerator = null;
+      }
     } else {
       this.groundPlane.material = this.groundMat;
+      // Create procedural background for land (regenerate for new random layout)
+      if (!this.bgGenerator) {
+        this.bgGenerator = new ProceduralBackgroundGenerator(this.scene);
+      }
     }
   }
 
   private createCloudLayer(): void {
-    const tm = TextureManager.getInstance();
-    this.cloudTexture = tm.get('bg/clouds.png');
-    this.cloudTexture.wrapS = THREE.RepeatWrapping;
-    this.cloudTexture.wrapT = THREE.RepeatWrapping;
-    this.cloudTexture.repeat.set(3, 3);
+    // Temporarily disabled
+    return;
+
+    // Create procedural cloud texture using canvas (disabled)
+    /*
+    const cloudCanvas = document.createElement('canvas');
+    cloudCanvas.width = 512;
+    cloudCanvas.height = 512;
+    const cloudCtx = cloudCanvas.getContext('2d')!;
+
+    // Clear with transparent
+    cloudCtx.clearRect(0, 0, 512, 512);
+
+    // Generate random cloud shapes
+    const cloudGroups = 8 + Math.floor(Math.random() * 6);
+
+    for (let i = 0; i < cloudGroups; i++) {
+      const cx = Math.random() * 512;
+      const cy = Math.random() * 512;
+      const cloudSize = 40 + Math.random() * 60;
+
+      // Draw multiple overlapping circles for fluffy cloud effect
+      const circleCount = 5 + Math.floor(Math.random() * 5);
+
+      for (let j = 0; j < circleCount; j++) {
+        const angle = (j / circleCount) * Math.PI * 2;
+        const dist = Math.random() * cloudSize * 0.5;
+        const ox = cx + Math.cos(angle) * dist;
+        const oy = cy + Math.sin(angle) * dist;
+        const radius = cloudSize * (0.4 + Math.random() * 0.3);
+
+        // Gradient for soft cloud edges
+        const gradient = cloudCtx.createRadialGradient(ox, oy, 0, ox, oy, radius);
+        const alpha = 0.15 + Math.random() * 0.2;
+        gradient.addColorStop(0, `rgba(200, 220, 255, ${alpha})`);
+        gradient.addColorStop(0.5, `rgba(180, 200, 240, ${alpha * 0.5})`);
+        gradient.addColorStop(1, 'rgba(150, 180, 220, 0)');
+
+        cloudCtx.fillStyle = gradient;
+        cloudCtx.beginPath();
+        cloudCtx.arc(ox, oy, radius, 0, Math.PI * 2);
+        cloudCtx.fill();
+      }
+    }
+
+    this.cloudTexture = new THREE.CanvasTexture(cloudCanvas);
+    this.cloudTexture!.wrapS = THREE.RepeatWrapping;
+    this.cloudTexture!.wrapT = THREE.RepeatWrapping;
+    this.cloudTexture!.repeat.set(2, 2);
 
     const cloudGeom = new THREE.PlaneGeometry(80, 80);
     const cloudMat = new THREE.MeshBasicMaterial({
-      map: this.cloudTexture,
+      map: this.cloudTexture!,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.4,
       depthWrite: false,
+      blending: THREE.NormalBlending,
     });
     this.cloudPlane = new THREE.Mesh(cloudGeom, cloudMat);
     this.cloudPlane.rotation.x = -Math.PI / 2;
     this.cloudPlane.position.y = 8;
     this.scene.add(this.cloudPlane);
+    */
   }
 
   /**
@@ -236,11 +298,19 @@ export class GameScene {
 
     if (this.currentEnv === 'land') {
       this.groundTexture.offset.y += this.groundSpeed * deltaTime * 0.05;
+
+      // Update procedural background (forests and lakes) with same scroll
+      if (this.bgGenerator) {
+        this.bgGenerator.update(deltaTime, this.groundSpeed);
+      }
     } else {
       this.oceanMat.uniforms.uTime.value = this.time;
     }
 
-    this.cloudTexture.offset.y += this.cloudSpeed * deltaTime * 0.05;
+    // Cloud scrolling disabled
+    // if (this.cloudTexture) {
+    //   this.cloudTexture.offset.y += this.cloudSpeed * deltaTime * 0.05;
+    // }
 
     // Twinkle stars
     if (this.starfield) {
@@ -273,7 +343,13 @@ export class GameScene {
 
   dispose(): void {
     this.groundTexture.dispose();
-    this.cloudTexture.dispose();
+    if (this.cloudTexture) {
+      this.cloudTexture.dispose();
+    }
+    if (this.bgGenerator) {
+      this.bgGenerator.dispose();
+      this.bgGenerator = null;
+    }
     this.scene.clear();
   }
 }
