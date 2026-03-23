@@ -54,10 +54,12 @@ export class Player {
       transparent: true,
       alphaTest: 0.1,
       side: THREE.DoubleSide,
+      depthTest: true,
     });
     this.bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
     this.bodyMesh.rotation.x = -Math.PI / 2;
     this.bodyMesh.position.y = 0.15;
+    this.bodyMesh.renderOrder = 999; // Render player after clouds
     this.mesh.add(this.bodyMesh);
 
     // Hitbox glow (center point for danmaku games)

@@ -13,7 +13,7 @@ export class GameScene {
   private groundPlane!: THREE.Mesh;
   private cloudPlane!: THREE.Mesh;
   private groundTexture!: THREE.Texture;
-  private cloudTexture: THREE.Texture | null = null;
+  private cloudTexture!: THREE.Texture;
 
   // Starfield
   private starfield!: THREE.Points;
@@ -29,7 +29,8 @@ export class GameScene {
 
   // Scroll speeds (units/s)
   private groundSpeed = 1.0;
-  private cloudSpeed = 0.4;
+  private cloudSpeed = 0.5; // Half of ground speed
+  private cloudScrollAccum = 0; // Accumulated cloud scroll offset
 
   // Lighting
   public sunLight!: THREE.DirectionalLight;
@@ -225,11 +226,7 @@ export class GameScene {
   }
 
   private createCloudLayer(): void {
-    // Temporarily disabled
-    return;
-
-    // Create procedural cloud texture using canvas (disabled)
-    /*
+    // Create procedural cloud texture using canvas
     const cloudCanvas = document.createElement('canvas');
     cloudCanvas.width = 512;
     cloudCanvas.height = 512;
@@ -256,9 +253,9 @@ export class GameScene {
         const oy = cy + Math.sin(angle) * dist;
         const radius = cloudSize * (0.4 + Math.random() * 0.3);
 
-        // Gradient for soft cloud edges
+        // Gradient for soft cloud edges - very subtle/transparent
         const gradient = cloudCtx.createRadialGradient(ox, oy, 0, ox, oy, radius);
-        const alpha = 0.15 + Math.random() * 0.2;
+        const alpha = 0.06 + Math.random() * 0.08; // Very low alpha: 0.06-0.14
         gradient.addColorStop(0, `rgba(200, 220, 255, ${alpha})`);
         gradient.addColorStop(0.5, `rgba(180, 200, 240, ${alpha * 0.5})`);
         gradient.addColorStop(1, 'rgba(150, 180, 220, 0)');
@@ -271,23 +268,24 @@ export class GameScene {
     }
 
     this.cloudTexture = new THREE.CanvasTexture(cloudCanvas);
-    this.cloudTexture!.wrapS = THREE.RepeatWrapping;
-    this.cloudTexture!.wrapT = THREE.RepeatWrapping;
-    this.cloudTexture!.repeat.set(2, 2);
+    this.cloudTexture.wrapS = THREE.RepeatWrapping;
+    this.cloudTexture.wrapT = THREE.RepeatWrapping;
+    this.cloudTexture.repeat.set(2, 2);
 
     const cloudGeom = new THREE.PlaneGeometry(80, 80);
     const cloudMat = new THREE.MeshBasicMaterial({
-      map: this.cloudTexture!,
+      map: this.cloudTexture,
       transparent: true,
       opacity: 0.4,
       depthWrite: false,
       blending: THREE.NormalBlending,
+      depthTest: true,
     });
     this.cloudPlane = new THREE.Mesh(cloudGeom, cloudMat);
     this.cloudPlane.rotation.x = -Math.PI / 2;
-    this.cloudPlane.position.y = 8;
+    this.cloudPlane.position.y = -1.5;
+    this.cloudPlane.renderOrder = 1; // Render clouds before player
     this.scene.add(this.cloudPlane);
-    */
   }
 
   /**
@@ -307,10 +305,11 @@ export class GameScene {
       this.oceanMat.uniforms.uTime.value = this.time;
     }
 
-    // Cloud scrolling disabled
-    // if (this.cloudTexture) {
-    //   this.cloudTexture.offset.y += this.cloudSpeed * deltaTime * 0.05;
-    // }
+    // Cloud scrolling (half speed of ground, adjusted for 2x2 repeat vs 4x4 ground)
+    if (this.cloudTexture) {
+      this.cloudScrollAccum += (this.cloudSpeed * 2) * deltaTime * 0.05;
+      this.cloudTexture.offset.y = this.cloudScrollAccum;
+    }
 
     // Twinkle stars
     if (this.starfield) {
@@ -343,9 +342,7 @@ export class GameScene {
 
   dispose(): void {
     this.groundTexture.dispose();
-    if (this.cloudTexture) {
-      this.cloudTexture.dispose();
-    }
+    this.cloudTexture.dispose();
     if (this.bgGenerator) {
       this.bgGenerator.dispose();
       this.bgGenerator = null;
