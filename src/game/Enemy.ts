@@ -51,6 +51,11 @@ export class Enemy {
   public fireTimer: number;
   private rotAngle = 0;
 
+  // Visual enhancements
+  private glowMesh: THREE.Mesh | null = null;
+  private hitFlashTimer = 0;
+  private bobPhase = Math.random() * Math.PI * 2;
+
   constructor(config: EnemyConfig) {
     this.config = config;
     this.hp = config.hp;
@@ -70,6 +75,25 @@ export class Enemy {
     this.mesh.rotation.x = -Math.PI / 2;
     this.mesh.position.y = 0.1;
     this.position = this.mesh.position;
+
+    // === Silhouette glow — same enemy texture, scaled up, color-tinted ===
+    const glowScale = 1.4;
+    const glowGeom = new THREE.PlaneGeometry(config.size * 1.6 * glowScale, config.size * 1.6 * glowScale);
+    const color = parseInt(config.color.replace('0x', ''), 16);
+    const glowMat = new THREE.MeshBasicMaterial({
+      map: tm.getEnemy(config.id),
+      color: color,
+      transparent: true,
+      opacity: 0.7,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      alphaTest: 0.05,
+    });
+    this.glowMesh = new THREE.Mesh(glowGeom, glowMat);
+    this.glowMesh.rotation.x = -Math.PI / 2;
+    this.glowMesh.position.y = 0.08;
+    this.mesh.add(this.glowMesh);
   }
 
   /**
@@ -189,10 +213,10 @@ export class Enemy {
    */
   takeDamage(amount: number): boolean {
     this.hp -= amount;
-    // Flash effect — briefly boost opacity/brightness
+    // Trigger hit flash — set timer and turn mesh white
+    this.hitFlashTimer = 0.12;
     const mat = this.mesh.material as THREE.MeshBasicMaterial;
     mat.color.set(0xffffff);
-    setTimeout(() => { if (mat) mat.color.set(0xffffff); mat.color.setRGB(1, 1, 1); }, 80);
 
     if (this.hp <= 0) {
       this.alive = false;
@@ -200,6 +224,30 @@ export class Enemy {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Update visual effects (call every frame from EnemyAI or Level).
+   */
+  updateVisuals(deltaTime: number): void {
+    // Hit flash decay
+    if (this.hitFlashTimer > 0) {
+      this.hitFlashTimer -= deltaTime;
+      if (this.hitFlashTimer <= 0) {
+        // Reset color
+        (this.mesh.material as THREE.MeshBasicMaterial).color.setRGB(1, 1, 1);
+      }
+    }
+
+    // Hover bob — subtle Y oscillation
+    this.bobPhase += deltaTime * 3;
+    this.mesh.position.y = 0.1 + Math.sin(this.bobPhase) * 0.05;
+
+    // Glow pulse
+    if (this.glowMesh) {
+      const glowMat = this.glowMesh.material as THREE.MeshBasicMaterial;
+      glowMat.opacity = 0.15 + Math.sin(this.bobPhase * 1.5) * 0.05;
+    }
   }
 
   /**
@@ -232,6 +280,15 @@ export class Enemy {
     mat.map = tm.getEnemy(config.id);
     mat.needsUpdate = true;
     mat.color.setRGB(1, 1, 1);
+
+    // Update glow texture and color
+    if (this.glowMesh) {
+      const glowMat = this.glowMesh.material as THREE.MeshBasicMaterial;
+      glowMat.map = tm.getEnemy(config.id);
+      const c = parseInt(config.color.replace('0x', ''), 16);
+      glowMat.color.set(c);
+      glowMat.needsUpdate = true;
+    }
 
     // Scale mesh to enemy size
     const baseSize = 0.4 * 1.6; // default config.size * 1.6

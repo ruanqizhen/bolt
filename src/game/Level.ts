@@ -170,6 +170,7 @@ export class Level {
 
       enemy.mesh.position.copy(enemy.position);
       enemy.tryFire(player.position, this.bulletManager, deltaTime);
+      enemy.updateVisuals(deltaTime);
 
       // Off-screen cleanup
       if (enemy.position.z > 20 || enemy.position.z < -25) {

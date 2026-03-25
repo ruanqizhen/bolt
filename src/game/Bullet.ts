@@ -41,8 +41,11 @@ export class BulletManager {
 
   // InstancedMeshes for rendering different bullet types
   private vulcanMesh: THREE.InstancedMesh;
+  private vulcanGlowMesh: THREE.InstancedMesh;
   private laserMesh: THREE.InstancedMesh;
+  private laserGlowMesh: THREE.InstancedMesh;
   private enemyBulletMesh: THREE.InstancedMesh;
+  private enemyGlowMesh: THREE.InstancedMesh;
   private dummy = new THREE.Object3D();
 
   private static readonly PLAYER_POOL_SIZE = 500;
@@ -70,31 +73,97 @@ export class BulletManager {
       scene.add(beam.mesh);
     }
 
-    // Vulcan bullets — small red short lines
-    const vGeom = new THREE.PlaneGeometry(0.1, 0.4);
-    vGeom.rotateX(-Math.PI / 2); // Lay flat on XZ plane
-    const vMat = new THREE.MeshBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+    // Vulcan bullets — hot glowing tracer rounds
+    const vGeom = new THREE.PlaneGeometry(0.12, 0.5);
+    vGeom.rotateX(-Math.PI / 2);
+    const vMat = new THREE.MeshBasicMaterial({
+      color: 0xff5588,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
     this.vulcanMesh = new THREE.InstancedMesh(vGeom, vMat, BulletManager.PLAYER_POOL_SIZE);
     this.vulcanMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.vulcanMesh.frustumCulled = false;
     scene.add(this.vulcanMesh);
 
-    // Laser bullets — blue light pillars
-    const lGeom = new THREE.PlaneGeometry(0.3, 1.2);
-    lGeom.rotateX(-Math.PI / 2);
-    const lMat = new THREE.MeshBasicMaterial({ color: 0x0033ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
-    this.laserMesh = new THREE.InstancedMesh(lGeom, lMat, BulletManager.PLAYER_POOL_SIZE);
+    // Vulcan glow halo (wider, dimmer layer behind each tracer)
+    const vGlowGeom = new THREE.PlaneGeometry(0.3, 0.7);
+    vGlowGeom.rotateX(-Math.PI / 2);
+    const vGlowMat = new THREE.MeshBasicMaterial({
+      color: 0xff2266,
+      transparent: true,
+      opacity: 0.35,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    this.vulcanGlowMesh = new THREE.InstancedMesh(vGlowGeom, vGlowMat, BulletManager.PLAYER_POOL_SIZE);
+    this.vulcanGlowMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.vulcanGlowMesh.frustumCulled = false;
+    scene.add(this.vulcanGlowMesh);
+
+    // Laser — white-hot inner core
+    const lCoreGeom = new THREE.PlaneGeometry(0.15, 1.4);
+    lCoreGeom.rotateX(-Math.PI / 2);
+    const lCoreMat = new THREE.MeshBasicMaterial({
+      color: 0xccddff,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    this.laserMesh = new THREE.InstancedMesh(lCoreGeom, lCoreMat, BulletManager.PLAYER_POOL_SIZE);
     this.laserMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.laserMesh.frustumCulled = false;
     scene.add(this.laserMesh);
 
-    // Enemy bullets — yellow spheres
-    const eGeom = new THREE.SphereGeometry(0.15, 6, 6);
-    const eMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    // Laser — blue outer sheath (wider glow)
+    const lSheathGeom = new THREE.PlaneGeometry(0.5, 1.6);
+    lSheathGeom.rotateX(-Math.PI / 2);
+    const lSheathMat = new THREE.MeshBasicMaterial({
+      color: 0x0055ff,
+      transparent: true,
+      opacity: 0.4,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    this.laserGlowMesh = new THREE.InstancedMesh(lSheathGeom, lSheathMat, BulletManager.PLAYER_POOL_SIZE);
+    this.laserGlowMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.laserGlowMesh.frustumCulled = false;
+    scene.add(this.laserGlowMesh);
+
+    // Enemy bullets — smooth glowing orbs
+    const eGeom = new THREE.SphereGeometry(0.13, 12, 12);
+    const eMat = new THREE.MeshBasicMaterial({
+      color: 0xffcc44,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
     this.enemyBulletMesh = new THREE.InstancedMesh(eGeom, eMat, BulletManager.ENEMY_POOL_SIZE);
     this.enemyBulletMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.enemyBulletMesh.frustumCulled = false;
     scene.add(this.enemyBulletMesh);
+
+    // Enemy bullet glow halos (larger, dimmer)
+    const eGlowGeom = new THREE.SphereGeometry(0.25, 8, 8);
+    const eGlowMat = new THREE.MeshBasicMaterial({
+      color: 0xff8800,
+      transparent: true,
+      opacity: 0.25,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    this.enemyGlowMesh = new THREE.InstancedMesh(eGlowGeom, eGlowMat, BulletManager.ENEMY_POOL_SIZE);
+    this.enemyGlowMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.enemyGlowMesh.frustumCulled = false;
+    scene.add(this.enemyGlowMesh);
   }
 
   /**
@@ -149,14 +218,20 @@ export class BulletManager {
       this.dummy.updateMatrix();
       
       if (bullet.type === 0) {
-        this.vulcanMesh.setMatrixAt(vIdx++, this.dummy.matrix);
+        this.vulcanMesh.setMatrixAt(vIdx, this.dummy.matrix);
+        this.vulcanGlowMesh.setMatrixAt(vIdx, this.dummy.matrix);
+        vIdx++;
       } else if (bullet.type === 1) {
-        this.laserMesh.setMatrixAt(lIdx++, this.dummy.matrix);
+        this.laserMesh.setMatrixAt(lIdx, this.dummy.matrix);
+        this.laserGlowMesh.setMatrixAt(lIdx, this.dummy.matrix);
+        lIdx++;
       }
     });
     
     this.finalizeMesh(this.vulcanMesh, vIdx);
+    this.finalizeMesh(this.vulcanGlowMesh, vIdx);
     this.finalizeMesh(this.laserMesh, lIdx);
+    this.finalizeMesh(this.laserGlowMesh, lIdx);
 
     // Enemy bullets
     let eIdx = 0;
@@ -164,9 +239,12 @@ export class BulletManager {
       this.dummy.position.copy(bullet.position);
       this.dummy.lookAt(bullet.position.clone().add(bullet.velocity));
       this.dummy.updateMatrix();
-      this.enemyBulletMesh.setMatrixAt(eIdx++, this.dummy.matrix);
+      this.enemyBulletMesh.setMatrixAt(eIdx, this.dummy.matrix);
+      this.enemyGlowMesh.setMatrixAt(eIdx, this.dummy.matrix);
+      eIdx++;
     });
     this.finalizeMesh(this.enemyBulletMesh, eIdx);
+    this.finalizeMesh(this.enemyGlowMesh, eIdx);
   }
 
   private finalizeMesh(mesh: THREE.InstancedMesh, activeCount: number): void {
@@ -252,10 +330,16 @@ export class BulletManager {
   dispose(): void {
     this.vulcanMesh.geometry.dispose();
     (this.vulcanMesh.material as THREE.Material).dispose();
+    this.vulcanGlowMesh.geometry.dispose();
+    (this.vulcanGlowMesh.material as THREE.Material).dispose();
     this.laserMesh.geometry.dispose();
     (this.laserMesh.material as THREE.Material).dispose();
+    this.laserGlowMesh.geometry.dispose();
+    (this.laserGlowMesh.material as THREE.Material).dispose();
     this.enemyBulletMesh.geometry.dispose();
     (this.enemyBulletMesh.material as THREE.Material).dispose();
+    this.enemyGlowMesh.geometry.dispose();
+    (this.enemyGlowMesh.material as THREE.Material).dispose();
     
     for (const beam of this.homingBeams) {
       beam.dispose();

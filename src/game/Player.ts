@@ -88,42 +88,59 @@ export class Player {
     this.shieldMesh.visible = false;
     this.mesh.add(this.shieldMesh);
 
-    // Outer glow effect
-    const glowGeom = new THREE.RingGeometry(0.8, 1.0, 32);
+    // === Silhouette glow — same ship texture, scaled up, tinted ===
+    const glowGeom = new THREE.PlaneGeometry(1.4 * 1.5, 1.8 * 1.5);
     const glowMat = new THREE.MeshBasicMaterial({
-      color: 0x00aaff,
+      map: tm.get('player/ship.png'),
+      color: 0x00ccff,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.7,
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
       depthWrite: false,
+      alphaTest: 0.05,
     });
     this.glowMesh = new THREE.Mesh(glowGeom, glowMat);
     this.glowMesh.rotation.x = -Math.PI / 2;
-    this.glowMesh.position.y = 0.05;
-    this.glowMesh.visible = false;
+    this.glowMesh.position.y = 0.12;
+    this.glowMesh.renderOrder = 998;
     this.mesh.add(this.glowMesh);
 
-    // Thruster flame (animated)
-    const thrusterGeom = new THREE.ConeGeometry(0.15, 0.6, 8);
-    const thrusterMat = new THREE.MeshBasicMaterial({
-      color: 0xff6600,
+    // Ground shadow circle
+    const shadowGeom = new THREE.CircleGeometry(0.8, 16);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      color: 0x000000,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.25,
+      depthWrite: false,
+    });
+    const shadowMesh = new THREE.Mesh(shadowGeom, shadowMat);
+    shadowMesh.rotation.x = -Math.PI / 2;
+    shadowMesh.position.y = -0.12;
+    this.mesh.add(shadowMesh);
+
+    // Thruster flame (animated) — orange outer
+    const thrusterGeom = new THREE.ConeGeometry(0.18, 0.7, 8);
+    const thrusterMat = new THREE.MeshBasicMaterial({
+      color: 0xff5500,
+      transparent: true,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
     this.thrusterMesh = new THREE.Mesh(thrusterGeom, thrusterMat);
     this.thrusterMesh.position.set(0, 0.08, 0.6);
     this.thrusterMesh.rotation.x = Math.PI / 2;
     this.mesh.add(this.thrusterMesh);
 
-    // Secondary thruster particles (inner blue core)
-    const innerThrusterGeom = new THREE.ConeGeometry(0.08, 0.4, 8);
+    // Inner blue core thruster
+    const innerThrusterGeom = new THREE.ConeGeometry(0.1, 0.5, 8);
     const innerThrusterMat = new THREE.MeshBasicMaterial({
-      color: 0x66ccff,
+      color: 0x88ddff,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.95,
       blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
     const innerThruster = new THREE.Mesh(innerThrusterGeom, innerThrusterMat);
     innerThruster.position.set(0, 0.08, 0.55);
@@ -162,18 +179,18 @@ export class Player {
       this.flashTimer += deltaTime;
       // Shield visible
       this.shieldMesh.visible = true;
-      this.glowMesh.visible = true;
       // Pulse shield
       const shieldScale = 1 + Math.sin(this.flashTimer * 10) * 0.1;
       this.shieldMesh.scale.set(shieldScale, shieldScale, shieldScale);
       (this.shieldMesh.material as THREE.MeshBasicMaterial).opacity = 0.3 + Math.sin(this.flashTimer * 5) * 0.1;
+      // Brighter glow during invincibility
+      (this.glowMesh.material as THREE.MeshBasicMaterial).opacity = 0.4 + Math.sin(this.flashTimer * 8) * 0.15;
       // Flash body
       this.mesh.visible = Math.sin(this.flashTimer * 20) > 0;
       if (this.invincibleTimer <= 0) {
         this.isInvincible = false;
         this.mesh.visible = true;
         this.shieldMesh.visible = false;
-        this.glowMesh.visible = false;
       }
     }
 
@@ -183,7 +200,12 @@ export class Player {
     this.thrusterMesh.scale.y = thrusterScale;
     this.thrusterMesh.scale.x = 1 + Math.sin(time * 25) * 0.2;
     this.thrusterMesh.scale.z = 1 + Math.sin(time * 25) * 0.2;
-    (this.thrusterMesh.material as THREE.MeshBasicMaterial).opacity = 0.6 + Math.sin(time * 30) * 0.3;
+    (this.thrusterMesh.material as THREE.MeshBasicMaterial).opacity = 0.7 + Math.sin(time * 30) * 0.25;
+
+    // --- Aura ring pulse ---
+    if (!this.isInvincible) {
+      (this.glowMesh.material as THREE.MeshBasicMaterial).opacity = 0.35 + Math.sin(time * 3) * 0.1;
+    }
 
     // --- Hitbox pulse when shooting ---
     if (input.shoot) {

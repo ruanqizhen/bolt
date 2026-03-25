@@ -78,10 +78,10 @@ class Game {
       gameSize.width,
       gameSize.height
     );
-    // Enhanced bloom for modern look
-    this.postProcessor.setBloomStrength(1.8);
-    this.postProcessor.setBloomRadius(0.5);
-    this.postProcessor.setBloomThreshold(0.1);
+    // Controlled bloom — halos and bright effects get glow
+    this.postProcessor.setBloomStrength(0.8);
+    this.postProcessor.setBloomRadius(0.3);
+    this.postProcessor.setBloomThreshold(0.5);
 
     // UI elements
     this.screens.title = document.getElementById('screen-title');
@@ -348,6 +348,7 @@ class Game {
       this.player.bombs--;
       this.bombSystem.trigger(this.player.position, this.bulletManager, this.particles, this.gameScene);
       this.audio.playSfx('bomb', { x: this.player.position.x, z: this.player.position.z });
+      this.postProcessor.triggerChromaticAberration(0.4);
     }
 
     // 6. Level system
@@ -376,6 +377,7 @@ class Game {
   }
 
   private render(): void {
+    this.postProcessor.update(1 / 60); // approximate frame dt for post-fx
     this.postProcessor.render();
   }
 

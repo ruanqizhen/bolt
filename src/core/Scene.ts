@@ -18,11 +18,15 @@ export class GameScene {
   // Starfield
   private starfield!: THREE.Points;
 
+  // Atmospheric dust motes
+  private dustParticles!: THREE.Points;
+  private dustVelocities: Float32Array = new Float32Array(0);
+
   // Procedural background (forests and lakes)
   private bgGenerator: ProceduralBackgroundGenerator | null = null;
 
   // Materials
-  private groundMat!: THREE.MeshLambertMaterial;
+  private groundMat!: THREE.MeshBasicMaterial;
   private oceanMat!: THREE.ShaderMaterial;
   private currentEnv: 'land' | 'ocean' = 'land';
   private time = 0;
@@ -43,6 +47,7 @@ export class GameScene {
 
     this.setupLighting();
     this.createStarfield();
+    this.createDustMotes();
     this.createGroundLayer();
     this.createCloudLayer();
 
@@ -127,6 +132,34 @@ export class GameScene {
     this.scene.add(this.starfield);
   }
 
+  private createDustMotes(): void {
+    const dustCount = 200;
+    const dustGeom = new THREE.BufferGeometry();
+    const positions = new Float32Array(dustCount * 3);
+    this.dustVelocities = new Float32Array(dustCount);
+
+    for (let i = 0; i < dustCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 40;
+      positions[i * 3 + 1] = Math.random() * 15 - 5;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+      this.dustVelocities[i] = 0.1 + Math.random() * 0.3;
+    }
+
+    dustGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const dustMat = new THREE.PointsMaterial({
+      size: 0.08,
+      color: 0xaaccff,
+      transparent: true,
+      opacity: 0.3,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    this.dustParticles = new THREE.Points(dustGeom, dustMat);
+    this.scene.add(this.dustParticles);
+  }
+
   private createGroundLayer(): void {
     const tm = TextureManager.getInstance();
     this.groundTexture = tm.get('bg/ground.png');
@@ -137,7 +170,7 @@ export class GameScene {
     // Use more segments for vertex displacement
     const groundGeom = new THREE.PlaneGeometry(80, 80, 64, 64);
 
-    this.groundMat = new THREE.MeshLambertMaterial({
+    this.groundMat = new THREE.MeshBasicMaterial({
       map: this.groundTexture,
     });
 
@@ -314,6 +347,24 @@ export class GameScene {
     // Twinkle stars
     if (this.starfield) {
       this.starfield.rotation.z += 0.0001;
+    }
+
+    // Animate dust motes
+    if (this.dustParticles) {
+      const dustPositions = this.dustParticles.geometry.attributes.position.array as Float32Array;
+      for (let i = 0; i < dustPositions.length / 3; i++) {
+        dustPositions[i * 3] += Math.sin(this.time + i * 0.5) * 0.002; // horizontal sway
+        dustPositions[i * 3 + 1] += this.dustVelocities[i] * deltaTime; // upward drift
+        dustPositions[i * 3 + 2] += Math.cos(this.time * 0.7 + i) * 0.001; // depth sway
+
+        // Wrap around when drifting too high
+        if (dustPositions[i * 3 + 1] > 10) {
+          dustPositions[i * 3 + 1] = -5;
+          dustPositions[i * 3] = (Math.random() - 0.5) * 40;
+          dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+        }
+      }
+      this.dustParticles.geometry.attributes.position.needsUpdate = true;
     }
   }
 
