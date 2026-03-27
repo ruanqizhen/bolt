@@ -3,6 +3,7 @@ import { Boss, BossPhase } from '../Boss';
 import { BulletManager } from '../Bullet';
 import { ParticleSystem } from '../../systems/Particles';
 import { GameScene } from '../../core/Scene';
+import { TextureManager } from '../../systems/TextureManager';
 
 /**
  * BomberBoss — Level 2 Boss: Giant Transforming Bomber
@@ -23,40 +24,21 @@ export class BomberBoss extends Boss {
   }
 
   private createVisuals(): void {
-    // Bomber fuselage
-    const bodyGeom = new THREE.BoxGeometry(6, 0.6, 2.5);
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x445566, metalness: 0.7, roughness: 0.3,
-      emissive: 0x112233, emissiveIntensity: 0.2,
+    const tm = TextureManager.getInstance();
+    
+    // Main body — textured plane
+    const bodyGeom = new THREE.PlaneGeometry(6, 2.5);
+    const bodyMat = new THREE.MeshBasicMaterial({
+      map: tm.getBoss('bomber_boss'),
+      transparent: true,
+      alphaTest: 0.1,
+      side: THREE.DoubleSide,
     });
     const body = new THREE.Mesh(bodyGeom, bodyMat);
-    body.castShadow = true;
+    body.rotation.x = -Math.PI / 2;
+    body.position.y = 0.1;
+    body.layers.set(1); // Enable bloom for boss
     this.mesh.add(body);
-
-    // Wings
-    const wingGeom = new THREE.BoxGeometry(8, 0.15, 1.5);
-    const wingMat = new THREE.MeshStandardMaterial({ color: 0x556677, metalness: 0.6, roughness: 0.3 });
-    const wings = new THREE.Mesh(wingGeom, wingMat);
-    wings.position.y = 0.15;
-    this.mesh.add(wings);
-
-    // Left engine
-    const engineGeom = new THREE.CylinderGeometry(0.35, 0.4, 1.2, 8);
-    const engineMat = new THREE.MeshStandardMaterial({ color: 0x334455, metalness: 0.8, roughness: 0.2 });
-    const leftEngine = new THREE.Mesh(engineGeom, engineMat);
-    leftEngine.position.set(-2.5, 0.3, 0.3);
-    this.mesh.add(leftEngine);
-    const rightEngine = new THREE.Mesh(engineGeom.clone(), engineMat.clone());
-    rightEngine.position.set(2.5, 0.3, 0.3);
-    this.mesh.add(rightEngine);
-
-    // Bomb bay (bottom glow)
-    const bayGeom = new THREE.BoxGeometry(3, 0.1, 1.5);
-    const bayMat = new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.3 });
-    const bay = new THREE.Mesh(bayGeom, bayMat);
-    bay.position.y = -0.35;
-    bay.name = 'bomb_bay';
-    this.mesh.add(bay);
   }
 
   private setupPhases(): void {
@@ -118,8 +100,6 @@ export class BomberBoss extends Boss {
           const ox = (Math.random() - 0.5) * 6;
           this.particles.emit('explosion', boss.position.x + ox, 0.5, boss.position.z);
         }
-        const bay = boss.mesh.getObjectByName('bomb_bay') as THREE.Mesh;
-        if (bay) (bay.material as THREE.MeshBasicMaterial).opacity = 0.8;
       },
       update: (boss, playerPos, dt) => {
         boss.position.x = Math.sin(performance.now() * 0.001) * 4;

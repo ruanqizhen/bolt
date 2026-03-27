@@ -3,6 +3,7 @@ import { Boss, BossPhase } from '../Boss';
 import { BulletManager } from '../Bullet';
 import { ParticleSystem } from '../../systems/Particles';
 import { GameScene } from '../../core/Scene';
+import { TextureManager } from '../../systems/TextureManager';
 
 /**
  * TankBoss — Level 1 Boss: Giant Dual-Cannon Tank
@@ -20,56 +21,21 @@ export class TankBoss extends Boss {
   }
 
   private createVisuals(): void {
-    // Main body — large box
-    const bodyGeom = new THREE.BoxGeometry(5, 0.8, 3);
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x556644,
-      metalness: 0.6,
-      roughness: 0.3,
-      emissive: 0x222211,
-      emissiveIntensity: 0.2,
+    const tm = TextureManager.getInstance();
+    
+    // Main body — textured plane
+    const bodyGeom = new THREE.PlaneGeometry(5, 3);
+    const bodyMat = new THREE.MeshBasicMaterial({
+      map: tm.getBoss('tank_boss'),
+      transparent: true,
+      alphaTest: 0.1,
+      side: THREE.DoubleSide,
     });
     const body = new THREE.Mesh(bodyGeom, bodyMat);
-    body.castShadow = true;
+    body.rotation.x = -Math.PI / 2;
+    body.position.y = 0.1;
+    body.layers.set(1); // Enable bloom for boss
     this.mesh.add(body);
-
-    // Left turret
-    const turretGeom = new THREE.CylinderGeometry(0.4, 0.5, 1.2, 8);
-    const turretMat = new THREE.MeshStandardMaterial({
-      color: 0x445533,
-      metalness: 0.7,
-      roughness: 0.3,
-    });
-    const leftTurret = new THREE.Mesh(turretGeom, turretMat);
-    leftTurret.position.set(-1.5, 0.6, 0);
-    this.mesh.add(leftTurret);
-
-    // Right turret
-    const rightTurret = new THREE.Mesh(turretGeom.clone(), turretMat.clone());
-    rightTurret.position.set(1.5, 0.6, 0);
-    this.mesh.add(rightTurret);
-
-    // Core (visible in phase 2)
-    const coreGeom = new THREE.SphereGeometry(0.5, 12, 12);
-    const coreMat = new THREE.MeshBasicMaterial({
-      color: 0xff3300,
-      transparent: true,
-      opacity: 0,
-    });
-    const core = new THREE.Mesh(coreGeom, coreMat);
-    core.position.set(0, 0.8, 0);
-    core.name = 'core';
-    this.mesh.add(core);
-
-    // Tank treads (sides)
-    const treadGeom = new THREE.BoxGeometry(0.5, 0.5, 3.2);
-    const treadMat = new THREE.MeshStandardMaterial({ color: 0x333322 });
-    const leftTread = new THREE.Mesh(treadGeom, treadMat);
-    leftTread.position.set(-2.7, -0.2, 0);
-    this.mesh.add(leftTread);
-    const rightTread = new THREE.Mesh(treadGeom.clone(), treadMat.clone());
-    rightTread.position.set(2.7, -0.2, 0);
-    this.mesh.add(rightTread);
   }
 
   private setupPhases(): void {
@@ -102,11 +68,7 @@ export class TankBoss extends Boss {
     const phase2: BossPhase = {
       hpThreshold: 0.5,
       onEnter: (boss) => {
-        // Show core, indicate enrage
-        const core = boss.mesh.getObjectByName('core') as THREE.Mesh;
-        if (core) {
-          (core.material as THREE.MeshBasicMaterial).opacity = 0.8;
-        }
+        // Enrage effect
         this.particles.emit('explosion', boss.position.x, 1, boss.position.z);
         this.particles.emit('explosion', boss.position.x - 1, 0.5, boss.position.z);
         this.particles.emit('explosion', boss.position.x + 1, 0.5, boss.position.z);
