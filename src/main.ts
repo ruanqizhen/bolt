@@ -69,7 +69,7 @@ class Game {
     this.audio = new AudioManager();
     this.state = new GameState();
 
-    // Post-processing with FXAA
+    // Post-processing with FXAA and brightness adjustment
     const gameSize = this.renderer.getGamePixelSize();
     this.postProcessor = new PostProcessor(
       this.renderer.renderer,
@@ -78,6 +78,9 @@ class Game {
       gameSize.width,
       gameSize.height
     );
+    // Brightness and gamma adjustment for better visibility
+    this.postProcessor.setBrightness(0.1);
+    this.postProcessor.setGamma(1.15);
 
     // UI elements
     this.screens.title = document.getElementById('screen-title');
