@@ -42,8 +42,9 @@ export class GameScene {
 
   constructor() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x050510);
-    this.scene.fog = new THREE.FogExp2(0x050510, 0.015);
+    // Dark background color
+    this.scene.background = new THREE.Color(0x020205);
+    this.scene.fog = new THREE.FogExp2(0x020205, 0.015);
 
     this.setupLighting();
     this.createStarfield();
@@ -56,11 +57,11 @@ export class GameScene {
   }
 
   private setupLighting(): void {
-    // Ambient base
-    this.ambientLight = new THREE.AmbientLight(0x445588, 0.8);
+    // Ambient base - normal lighting (doesn't affect MeshBasicMaterial enemies)
+    this.ambientLight = new THREE.AmbientLight(0x445588, 0.5);
     this.scene.add(this.ambientLight);
 
-    // Directional sun light with shadows
+    // Directional sun light
     this.sunLight = new THREE.DirectionalLight(0xffeedd, 1.5);
     this.sunLight.position.set(5, 20, 10);
     this.sunLight.castShadow = true;

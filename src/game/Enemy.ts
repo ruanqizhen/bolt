@@ -63,28 +63,54 @@ export class Enemy {
     this.fireTimer = config.attack.cooldown * (0.5 + Math.random() * 0.5);
 
     // Create visual mesh — textured plane from PNG
+    // Doubled size for better visibility (excluding bosses)
+    const sizeMultiplier = 2.0;
     const tm = TextureManager.getInstance();
-    const geom = new THREE.PlaneGeometry(config.size * 1.6, config.size * 1.6);
+    const geom = new THREE.PlaneGeometry(config.size * 1.6 * sizeMultiplier, config.size * 1.6 * sizeMultiplier);
     const mat = new THREE.MeshBasicMaterial({
       map: tm.getEnemy(config.id),
       transparent: true,
       alphaTest: 0.1,
       side: THREE.DoubleSide,
+      // Brighten the base texture
+      opacity: 1.0,
     });
     this.mesh = new THREE.Mesh(geom, mat);
     this.mesh.rotation.x = -Math.PI / 2;
     this.mesh.position.y = 0.1;
     this.position = this.mesh.position;
+    // Enable bloom for enemies (layer 1)
+    this.mesh.layers.set(1);
+
+    // === Inner bright core — extra layer for extra brightness ===
+    const innerScale = 1.2;
+    const innerGeom = new THREE.PlaneGeometry(config.size * 1.6 * sizeMultiplier * innerScale, config.size * 1.6 * sizeMultiplier * innerScale);
+    const innerMat = new THREE.MeshBasicMaterial({
+      map: tm.getEnemy(config.id),
+      color: 0xffffff, // White core for extra brightness
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      alphaTest: 0.05,
+    });
+    const innerMesh = new THREE.Mesh(innerGeom, innerMat);
+    innerMesh.rotation.x = -Math.PI / 2;
+    innerMesh.position.y = 0.09;
+    innerMesh.layers.set(1);
+    this.mesh.add(innerMesh);
 
     // === Silhouette glow — same enemy texture, scaled up, color-tinted ===
-    const glowScale = 1.4;
-    const glowGeom = new THREE.PlaneGeometry(config.size * 1.6 * glowScale, config.size * 1.6 * glowScale);
+    // Maximum brightness for enemies
+    const glowScale = 1.8; // Larger glow
+    const glowGeom = new THREE.PlaneGeometry(config.size * 1.6 * sizeMultiplier * glowScale, config.size * 1.6 * sizeMultiplier * glowScale);
     const color = parseInt(config.color.replace('0x', ''), 16);
     const glowMat = new THREE.MeshBasicMaterial({
       map: tm.getEnemy(config.id),
       color: color,
       transparent: true,
-      opacity: 0.7,
+      opacity: 1.0, // Maximum opacity
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
       depthWrite: false,
@@ -93,6 +119,7 @@ export class Enemy {
     this.glowMesh = new THREE.Mesh(glowGeom, glowMat);
     this.glowMesh.rotation.x = -Math.PI / 2;
     this.glowMesh.position.y = 0.08;
+    this.glowMesh.layers.set(1);
     this.mesh.add(this.glowMesh);
   }
 
@@ -243,10 +270,11 @@ export class Enemy {
     this.bobPhase += deltaTime * 3;
     this.mesh.position.y = 0.1 + Math.sin(this.bobPhase) * 0.05;
 
-    // Glow pulse
+    // Glow pulse — enhanced for better visibility
     if (this.glowMesh) {
       const glowMat = this.glowMesh.material as THREE.MeshBasicMaterial;
-      glowMat.opacity = 0.15 + Math.sin(this.bobPhase * 1.5) * 0.05;
+      // Base opacity increased, pulse range increased for more prominent glow
+      glowMat.opacity = 0.35 + Math.sin(this.bobPhase * 1.5) * 0.15;
     }
   }
 

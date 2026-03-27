@@ -47,7 +47,7 @@ export class Player {
   private createVisuals(): void {
     const tm = TextureManager.getInstance();
 
-    // Textured plane for player ship sprite
+    // Body mesh - textured plane for player ship sprite
     const bodyGeom = new THREE.PlaneGeometry(1.4, 1.8);
     const bodyMat = new THREE.MeshBasicMaterial({
       map: tm.get('player/ship.png'),
@@ -59,7 +59,9 @@ export class Player {
     this.bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
     this.bodyMesh.rotation.x = -Math.PI / 2;
     this.bodyMesh.position.y = 0.15;
-    this.bodyMesh.renderOrder = 999; // Render player after clouds
+    this.bodyMesh.renderOrder = 999;
+    // Enable bloom for player ship (layer 1)
+    this.bodyMesh.layers.set(1);
     this.mesh.add(this.bodyMesh);
 
     // Hitbox glow (center point for danmaku games)
@@ -72,6 +74,7 @@ export class Player {
     });
     this.hitboxMesh = new THREE.Mesh(hitboxGeom, hitboxMat);
     this.hitboxMesh.position.y = 0.15;
+    this.hitboxMesh.layers.set(1);
     this.mesh.add(this.hitboxMesh);
 
     // Energy shield (visible when invincible)
@@ -86,15 +89,34 @@ export class Player {
     this.shieldMesh = new THREE.Mesh(shieldGeom, shieldMat);
     this.shieldMesh.position.y = 0.1;
     this.shieldMesh.visible = false;
+    this.shieldMesh.layers.set(1);
     this.mesh.add(this.shieldMesh);
 
+    // === Inner bright core — white center for extra brightness ===
+    const innerCoreGeom = new THREE.PlaneGeometry(1.4 * 1.2, 1.8 * 1.2);
+    const innerCoreMat = new THREE.MeshBasicMaterial({
+      map: tm.get('player/ship.png'),
+      color: 0xffffff, // White core
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      alphaTest: 0.05,
+    });
+    const innerCore = new THREE.Mesh(innerCoreGeom, innerCoreMat);
+    innerCore.rotation.x = -Math.PI / 2;
+    innerCore.position.y = 0.13;
+    innerCore.layers.set(1);
+    this.mesh.add(innerCore);
+
     // === Silhouette glow — same ship texture, scaled up, tinted ===
-    const glowGeom = new THREE.PlaneGeometry(1.4 * 1.5, 1.8 * 1.5);
+    const glowGeom = new THREE.PlaneGeometry(1.4 * 1.8, 1.8 * 1.8); // Increased scale
     const glowMat = new THREE.MeshBasicMaterial({
       map: tm.get('player/ship.png'),
       color: 0x00ccff,
       transparent: true,
-      opacity: 0.7,
+      opacity: 1.0, // Maximum opacity
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
       depthWrite: false,
@@ -104,9 +126,10 @@ export class Player {
     this.glowMesh.rotation.x = -Math.PI / 2;
     this.glowMesh.position.y = 0.12;
     this.glowMesh.renderOrder = 998;
+    this.glowMesh.layers.set(1);
     this.mesh.add(this.glowMesh);
 
-    // Ground shadow circle
+    // Ground shadow circle (no bloom for shadow)
     const shadowGeom = new THREE.CircleGeometry(0.8, 16);
     const shadowMat = new THREE.MeshBasicMaterial({
       color: 0x000000,
@@ -131,6 +154,7 @@ export class Player {
     this.thrusterMesh = new THREE.Mesh(thrusterGeom, thrusterMat);
     this.thrusterMesh.position.set(0, 0.08, 0.6);
     this.thrusterMesh.rotation.x = Math.PI / 2;
+    this.thrusterMesh.layers.set(1);
     this.mesh.add(this.thrusterMesh);
 
     // Inner blue core thruster
@@ -145,6 +169,7 @@ export class Player {
     const innerThruster = new THREE.Mesh(innerThrusterGeom, innerThrusterMat);
     innerThruster.position.set(0, 0.08, 0.55);
     innerThruster.rotation.x = Math.PI / 2;
+    innerThruster.layers.set(1);
     this.mesh.add(innerThruster);
   }
 
@@ -204,7 +229,7 @@ export class Player {
 
     // --- Aura ring pulse ---
     if (!this.isInvincible) {
-      (this.glowMesh.material as THREE.MeshBasicMaterial).opacity = 0.35 + Math.sin(time * 3) * 0.1;
+      (this.glowMesh.material as THREE.MeshBasicMaterial).opacity = 0.5 + Math.sin(time * 3) * 0.2;
     }
 
     // --- Hitbox pulse when shooting ---

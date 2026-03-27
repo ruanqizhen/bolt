@@ -78,9 +78,11 @@ class Game {
       gameSize.width,
       gameSize.height
     );
-    // Brightness and gamma adjustment for better visibility
-    this.postProcessor.setBrightness(0.1);
-    this.postProcessor.setGamma(1.15);
+    // Normal brightness for foreground objects
+    this.postProcessor.setBrightness(0.0);
+    this.postProcessor.setGamma(1.0);
+    // Enable strong bloom for player, enemies, and bullets (selective bloom)
+    this.postProcessor.setBloomStrength(2.0); // Maximum bloom intensity
 
     // UI elements
     this.screens.title = document.getElementById('screen-title');
