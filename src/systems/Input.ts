@@ -30,21 +30,41 @@ export class Input {
   // Bomb flag (consumed on read)
   private bombTriggered = false;
 
+  // Bound event handlers (for proper removal in dispose)
+  private boundKeyDown: (e: KeyboardEvent) => void;
+  private boundKeyUp: (e: KeyboardEvent) => void;
+  private boundMouseDown: (e: MouseEvent) => void;
+  private boundMouseUp: (e: MouseEvent) => void;
+  private boundMouseMove: (e: MouseEvent) => void;
+  private boundTouchStart: (e: TouchEvent) => void;
+  private boundTouchMove: (e: TouchEvent) => void;
+  private boundTouchEnd: (e: TouchEvent) => void;
+
   constructor() {
+    // Bind event handlers for proper removal
+    this.boundKeyDown = this.onKeyDown.bind(this);
+    this.boundKeyUp = this.onKeyUp.bind(this);
+    this.boundMouseDown = this.onMouseDown.bind(this);
+    this.boundMouseUp = this.onMouseUp.bind(this);
+    this.boundMouseMove = this.onMouseMove.bind(this);
+    this.boundTouchStart = this.onTouchStart.bind(this);
+    this.boundTouchMove = this.onTouchMove.bind(this);
+    this.boundTouchEnd = this.onTouchEnd.bind(this);
+
     // Keyboard
-    window.addEventListener('keydown', this.onKeyDown.bind(this));
-    window.addEventListener('keyup', this.onKeyUp.bind(this));
+    window.addEventListener('keydown', this.boundKeyDown);
+    window.addEventListener('keyup', this.boundKeyUp);
 
     // Mouse
-    window.addEventListener('mousedown', this.onMouseDown.bind(this));
-    window.addEventListener('mouseup', this.onMouseUp.bind(this));
-    window.addEventListener('mousemove', this.onMouseMove.bind(this));
+    window.addEventListener('mousedown', this.boundMouseDown);
+    window.addEventListener('mouseup', this.boundMouseUp);
+    window.addEventListener('mousemove', this.boundMouseMove);
     window.addEventListener('contextmenu', (e) => e.preventDefault());
 
     // Touch
-    window.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: false });
-    window.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: false });
-    window.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: false });
+    window.addEventListener('touchstart', this.boundTouchStart, { passive: false });
+    window.addEventListener('touchmove', this.boundTouchMove, { passive: false });
+    window.addEventListener('touchend', this.boundTouchEnd, { passive: false });
   }
 
   /**
@@ -161,7 +181,13 @@ export class Input {
   }
 
   dispose(): void {
-    window.removeEventListener('keydown', this.onKeyDown.bind(this));
-    window.removeEventListener('keyup', this.onKeyUp.bind(this));
+    window.removeEventListener('keydown', this.boundKeyDown);
+    window.removeEventListener('keyup', this.boundKeyUp);
+    window.removeEventListener('mousedown', this.boundMouseDown);
+    window.removeEventListener('mouseup', this.boundMouseUp);
+    window.removeEventListener('mousemove', this.boundMouseMove);
+    window.removeEventListener('touchstart', this.boundTouchStart);
+    window.removeEventListener('touchmove', this.boundTouchMove);
+    window.removeEventListener('touchend', this.boundTouchEnd);
   }
 }

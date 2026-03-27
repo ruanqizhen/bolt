@@ -565,6 +565,16 @@ export class AudioManager {
       if (!this.bgmPlaying || !this.ctx || !this.bgmGain) return;
       const now = this.ctx.currentTime;
 
+      // Clear old oscillators before creating new ones to prevent memory leak
+      for (const osc of this.bgmOscillators) {
+        try {
+          osc.stop();
+        } catch (e) {
+          // Already stopped
+        }
+      }
+      this.bgmOscillators = [];
+
       for (let i = 0; i < config.notes.length; i++) {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();

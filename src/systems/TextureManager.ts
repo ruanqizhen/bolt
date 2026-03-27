@@ -61,11 +61,44 @@ export class TextureManager {
         },
         undefined,
         () => {
-          console.warn(`[TextureManager] Failed to load: ${fullPath}`);
-          resolve(new THREE.Texture()); // fallback
+          console.warn(`[TextureManager] Failed to load: ${fullPath}, using fallback`);
+          // Create a fallback texture (magenta checker pattern to indicate missing texture)
+          const fallback = this.createFallbackTexture();
+          this.cache.set(relativePath, fallback);
+          resolve(fallback);
         }
       );
     });
+  }
+
+  /**
+   * Create a fallback texture (purple checker pattern) for missing textures.
+   */
+  private createFallbackTexture(): THREE.Texture {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d')!;
+
+    // Fill with magenta background
+    ctx.fillStyle = '#ff00ff';
+    ctx.fillRect(0, 0, 64, 64);
+
+    // Draw checker pattern
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, 32, 32);
+    ctx.fillRect(32, 32, 32, 32);
+
+    // Draw "MISSING" text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('MISSING', 32, 36);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.NearestFilter;
+    texture.magFilter = THREE.NearestFilter;
+    return texture;
   }
 
   /**

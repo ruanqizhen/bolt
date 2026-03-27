@@ -324,9 +324,10 @@ export class Level {
       // Show boss HP bar
       const bossHp = document.getElementById('hud-boss-hp');
       if (bossHp) bossHp.classList.remove('hidden');
-      // Play boss warning sound
+      // Play boss warning sound and start boss BGM
       if (this.audio) {
         this.audio.playSfx('boss_warning');
+        this.audio.startBossBGM(false); // Start boss theme (normal phase)
       }
     } else if (event.boss) {
       this.spawnBoss(event.boss);

@@ -87,6 +87,7 @@ export class PostProcessor {
   }
 
   resize(width: number, height: number): void {
+    const pixelRatio = this.composer.renderer.getPixelRatio();
     this.composer.setSize(width, height);
     this.fxaaPass.material.uniforms['resolution'].value.set(
       1 / (width * pixelRatio),

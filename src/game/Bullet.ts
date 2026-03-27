@@ -379,19 +379,20 @@ class HomingBeamVisual {
     const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
     const dir = new THREE.Vector3().subVectors(end, start).normalize();
     const dist = start.distanceTo(end);
-    
+
     // Perpendicular vector for the bow effect
     const perp = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(dist * 0.4);
     if (Math.random() > 0.5) perp.negate();
-    
+
     const control = mid.add(perp);
     const curve = new THREE.QuadraticBezierCurve3(start, control, end);
-    
+
+    // Create new geometry and properly dispose of old one
+    const oldGeom = this.mesh.geometry;
     const geom = new THREE.TubeGeometry(curve, 12, 0.15, 6, false);
-    
-    this.mesh.geometry.dispose(); // prevent leak
     this.mesh.geometry = geom;
-    
+    oldGeom.dispose(); // Dispose old geometry after assignment
+
     (this.mesh.material as THREE.MeshBasicMaterial).opacity = 0.8;
   }
 

@@ -196,16 +196,23 @@ export class CollisionSystem {
       });
     }
 
-    // Query for each player bullet
+    // Query for each player bullet and deduplicate hits
     const queryResults: QuadItem[] = [];
+    const hitSet = new Set<string>(); // Track unique bullet-enemy hits
+
     for (const bullet of playerBullets) {
       queryResults.length = 0;
       this.quadTree.query(bullet.position, 0.3, queryResults);
       for (const hit of queryResults) {
-        result.bulletHits.push({
-          bullet,
-          enemyIndex: hit.data as number,
-        });
+        // Create unique key for bullet-enemy pair to prevent duplicate hits
+        const hitKey = `${bullet.position.x},${bullet.position.z}-${hit.data as number}`;
+        if (!hitSet.has(hitKey)) {
+          hitSet.add(hitKey);
+          result.bulletHits.push({
+            bullet,
+            enemyIndex: hit.data as number,
+          });
+        }
       }
     }
 

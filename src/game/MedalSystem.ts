@@ -14,16 +14,16 @@ export class MedalSystem {
     this.chain++;
     this.lastPickupMoving = isMoving;
 
-    // Base score
+    // Base score: 500 for stationary, 1000 for moving (in-flight) pickup
     let score = isMoving ? 1000 : 500;
 
-    // Chain bonuses
+    // Chain bonuses (additional bonus on top of base score)
     if (this.chain >= 30) {
-      score = 100000;
+      score += 100000; // Rainbow medal bonus
     } else if (this.chain >= 20) {
-      score = 20000;
+      score += 20000; // Gold flash medal bonus
     } else if (this.chain >= 10) {
-      score = 5000;
+      score += 5000; // Gold medal bonus
     }
 
     return score;

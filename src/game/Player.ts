@@ -238,13 +238,13 @@ export class Player {
   }
 
   /**
-   * Respawn the player (e.g., after Game Over → Continue).
+   * Respawn the player at the starting position.
+   * Called when player dies but has continues remaining.
+   * Does NOT reset lives or bombs - those are preserved.
    */
   respawn(): void {
     this.isAlive = true;
     this.mesh.visible = true;
-    this.lives = 3;
-    this.bombs = 3;
     this.isInvincible = true;
     this.invincibleTimer = Player.INVINCIBLE_DURATION;
     this.flashTimer = 0;
