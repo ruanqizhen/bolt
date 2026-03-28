@@ -83,10 +83,22 @@ export class Enemy {
   }
 
   /**
+   * Check if enemy is within the visible game area and can fire.
+   */
+  canFire(): boolean {
+    // Enemy must be in the visible area to fire
+    // Spawn zone is above z=-10, visible area starts around z=-8
+    return this.position.z > -10 && this.position.z < 12;
+  }
+
+  /**
    * Try to fire at the given target position.
    */
   tryFire(targetPos: THREE.Vector3, bulletManager: BulletManager, deltaTime: number): void {
     if (this.config.attack.type === 'none') return;
+    
+    // Only fire if enemy is in visible game area
+    if (!this.canFire()) return;
 
     this.fireTimer -= deltaTime;
     if (this.fireTimer > 0) return;

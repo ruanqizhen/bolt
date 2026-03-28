@@ -203,6 +203,7 @@ export class Level {
       position: e.position,
       radius: e.config.size * 0.6,
       alive: e.alive,
+      inView: e.alive ? e.canFire() : false,
     }));
 
     // Add boss hitbox

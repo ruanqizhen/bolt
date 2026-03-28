@@ -124,6 +124,8 @@ export interface EnemyHitbox {
   position: THREE.Vector3;
   radius: number;
   alive: boolean;
+  /** Whether enemy is in the visible game area */
+  inView?: boolean;
 }
 
 /**
@@ -171,7 +173,7 @@ export class CollisionSystem {
     if (!player.isInvincible) {
       for (let i = 0; i < enemies.length; i++) {
         const enemy = enemies[i];
-        if (!enemy.alive) continue;
+        if (!enemy.alive || enemy.inView === false) continue;
         const dx = enemy.position.x - player.position.x;
         const dz = enemy.position.z - player.position.z;
         const dist = Math.sqrt(dx * dx + dz * dz);
@@ -185,10 +187,10 @@ export class CollisionSystem {
     // 3. Player bullets vs enemies (Quadtree)
     this.quadTree.clear();
 
-    // Insert enemies into quadtree
+    // Insert enemies into quadtree (only those in view)
     for (let i = 0; i < enemies.length; i++) {
       const enemy = enemies[i];
-      if (!enemy.alive) continue;
+      if (!enemy.alive || enemy.inView === false) continue;
       this.quadTree.insert({
         position: enemy.position,
         radius: enemy.radius,
