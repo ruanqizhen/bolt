@@ -48,29 +48,34 @@ html, body {
   left: 0;
   right: 0;
   pointer-events: none;
-  padding: 12px 16px;
   z-index: 10;
 }
 
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 14px;
+  gap: 10px;
+}
+
 .hud-score {
-  position: absolute;
-  top: 12px;
-  left: 16px;
   color: #fff;
   font-family: 'Rajdhani', sans-serif;
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   text-shadow:
     0 0 10px rgba(0, 200, 255, 0.8),
     0 0 20px rgba(0, 200, 255, 0.4);
-  background: linear-gradient(135deg, rgba(0, 40, 80, 0.4), rgba(0, 20, 60, 0.2));
+  background: linear-gradient(135deg, rgba(0, 40, 80, 0.5), rgba(0, 20, 60, 0.3));
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  padding: 4px 14px;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 150, 255, 0.2);
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 150, 255, 0.25);
   animation: scorePulse 2s ease-in-out infinite;
+  white-space: nowrap;
 }
 
 @keyframes scorePulse {
@@ -79,50 +84,50 @@ html, body {
 }
 
 .hud-right {
-  position: absolute;
-  top: 12px;
-  right: 16px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .hud-lives, .hud-bombs, .hud-weapon {
   color: #fff;
   font-family: 'Rajdhani', sans-serif;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 1px;
-  background: linear-gradient(135deg, rgba(0, 40, 80, 0.4), rgba(0, 20, 60, 0.2));
+  background: linear-gradient(135deg, rgba(0, 40, 80, 0.5), rgba(0, 20, 60, 0.3));
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  padding: 3px 10px;
-  border-radius: 5px;
-  border: 1px solid rgba(0, 150, 255, 0.15);
-  text-shadow: 0 0 8px rgba(255, 100, 100, 0.5);
+  padding: 4px 9px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 150, 255, 0.2);
+  text-shadow: 0 0 6px rgba(255, 100, 100, 0.4);
+  white-space: nowrap;
 }
 
 .hud-weapon {
-  text-shadow: 0 0 8px rgba(0, 200, 255, 0.5);
+  text-shadow: 0 0 6px rgba(0, 200, 255, 0.4);
 }
 
 .hud-level {
   position: absolute;
-  bottom: 32px;
-  right: 16px;
+  bottom: 10px;
+  right: 14px;
   color: rgba(255, 255, 255, 0.5);
   font-family: 'Rajdhani', sans-serif;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 2px;
   pointer-events: none;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
 }
 
 /* ===== Boss HP Bar ===== */
 .hud-boss-hp {
   position: absolute;
-  top: 8px;
+  top: 55px;
   left: 50%;
   transform: translateX(-50%);
   width: 40%;
@@ -134,7 +139,7 @@ html, body {
 .boss-hp-label {
   color: #ff3333;
   font-family: 'Orbitron', sans-serif;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   text-align: center;
   letter-spacing: 6px;
@@ -476,8 +481,13 @@ html, body {
 
 /* ===== Mobile Controls ===== */
 @media (max-width: 768px) {
-  .hud-score { font-size: 16px; padding: 3px 10px; }
-  .hud-lives, .hud-bombs, .hud-weapon { font-size: 13px; }
+  .hud-top { padding: 8px 10px; gap: 8px; }
+  .hud-score { font-size: 14px; padding: 4px 8px; }
+  .hud-lives, .hud-bombs, .hud-weapon { font-size: 12px; padding: 3px 7px; }
+  .hud-right { gap: 6px; }
+  .hud-boss-hp { top: 50px; width: 50%; max-width: 280px; }
+  .boss-hp-label { font-size: 9px; letter-spacing: 4px; }
+  .hud-level { font-size: 10px; bottom: 8px; right: 10px; }
   .game-title { font-size: 48px; letter-spacing: 8px; }
   .title-cn { font-size: 20px; }
   .screen-heading { font-size: 32px; }
