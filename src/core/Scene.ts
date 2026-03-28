@@ -163,7 +163,8 @@ export class GameScene {
 
   private createGroundLayer(): void {
     const tm = TextureManager.getInstance();
-    this.groundTexture = tm.get('bg/ground.png');
+    // Default to level 1 background
+    this.groundTexture = tm.get('bg/bg1.png');
     this.groundTexture.wrapS = THREE.RepeatWrapping;
     this.groundTexture.wrapT = THREE.RepeatWrapping;
     this.groundTexture.repeat.set(4, 4);
@@ -241,7 +242,10 @@ export class GameScene {
     this.scene.add(this.groundPlane);
   }
 
-  public setEnvironment(type: 'land' | 'ocean'): void {
+  /**
+   * Set environment and background for the given level.
+   */
+  public setEnvironment(type: 'land' | 'ocean', levelNum: number = 1): void {
     this.currentEnv = type;
     if (type === 'ocean') {
       this.groundPlane.material = this.oceanMat;
@@ -252,6 +256,15 @@ export class GameScene {
       }
     } else {
       this.groundPlane.material = this.groundMat;
+      // Change background texture based on level
+      const tm = TextureManager.getInstance();
+      const bgPath = `bg/bg${levelNum}.png`;
+      const newTexture = tm.get(bgPath);
+      if (newTexture && this.groundTexture !== newTexture) {
+        this.groundTexture = newTexture;
+        this.groundMat.map = newTexture;
+        this.groundMat.needsUpdate = true;
+      }
       // Create procedural background for land (regenerate for new random layout)
       if (!this.bgGenerator) {
         this.bgGenerator = new ProceduralBackgroundGenerator(this.scene);

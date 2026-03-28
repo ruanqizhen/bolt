@@ -36,7 +36,7 @@ export class TextureManager {
       'drops/powerup_red.png', 'drops/powerup_blue.png', 'drops/powerup_purple.png',
       'drops/bomb.png', 'drops/medal.png',
       // Backgrounds
-      'bg/ground.png',
+      'bg/bg1.png', 'bg/bg2.png', 'bg/bg3.png',
     ];
 
     const promises = paths.map((p) => this.loadTexture(p));

@@ -245,13 +245,13 @@ class Game {
     if (levelEl) levelEl.textContent = `第 ${levelNum} 关`;
 
     if (levelNum === 3) {
-      this.gameScene.setEnvironment('ocean');
+      this.gameScene.setEnvironment('ocean', 3);
       this.audio.transitionBGM('stage3', 0.5);
     } else if (levelNum === 2) {
-      this.gameScene.setEnvironment('land');
+      this.gameScene.setEnvironment('land', 2);
       this.audio.transitionBGM('stage2', 0.5);
     } else {
-      this.gameScene.setEnvironment('land');
+      this.gameScene.setEnvironment('land', 1);
       this.audio.transitionBGM('stage1', 0.5);
     }
 
