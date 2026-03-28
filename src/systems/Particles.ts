@@ -263,11 +263,14 @@ export class ParticleSystem {
    */
   emitExplosion(tier: 'tiny' | 'small' | 'medium' | 'large' | 'massive', x: number, y: number, z: number): void {
     const config = EXPLOSION_TIERS[tier];
+    console.log(`[Particles] emitExplosion: ${tier}, count=${config.particleCount}, pos=(${x},${y},${z})`);
 
     // Main explosion particles
+    let spawned = 0;
     for (let i = 0; i < config.particleCount; i++) {
       const p = this.acquireParticle();
       if (!p) break;
+      spawned++;
 
       p.position.set(x, y, z);
 
@@ -288,6 +291,7 @@ export class ParticleSystem {
       p.rotationSpeed = (Math.random() - 0.5) * 10;
       p.active = true;
     }
+    console.log(`[Particles] Spawned ${spawned} explosion particles`);
 
     // Shockwave rings
     for (let s = 0; s < config.shockwaveCount; s++) {
@@ -399,9 +403,14 @@ export class ParticleSystem {
       this.mesh.setMatrixAt(i, this.dummy.matrix);
     }
 
-    this.mesh.count = Math.max(visibleCount, 1);
-    this.mesh.instanceMatrix.needsUpdate = true;
-    this.colorAttr.needsUpdate = true;
+    // Only update count if there are visible particles
+    if (visibleCount > 0) {
+      this.mesh.count = visibleCount;
+      this.mesh.instanceMatrix.needsUpdate = true;
+      this.colorAttr.needsUpdate = true;
+    } else {
+      this.mesh.count = 0;
+    }
   }
 
   /**

@@ -203,7 +203,7 @@ export class Level {
       position: e.position,
       radius: e.config.size * 0.6,
       alive: e.alive,
-      inView: e.alive ? e.canFire() : false,
+      inView: e.alive ? e.isInPlayArea() : false,
     }));
 
     // Add boss hitbox
@@ -413,6 +413,8 @@ export class Level {
       lightIntensity = 7;
       lightColor = 0xff0000;
     }
+    
+    console.log(`[Explosion] Enemy killed: ${enemy.config.id}, size=${size}, tier=${explosionTier}`);
     
     // Create scaled explosion effects
     this.particles.emitExplosion(explosionTier, enemy.position.x, 0.5, enemy.position.z);

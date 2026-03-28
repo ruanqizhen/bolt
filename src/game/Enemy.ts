@@ -92,6 +92,16 @@ export class Enemy {
   }
 
   /**
+   * Check if enemy is in the gameplay area (can be hit by bullets).
+   * More lenient than canFire() to allow hitting enemies as they enter.
+   */
+  isInPlayArea(): boolean {
+    // Enemies spawn at z=-15 and move down to z=15+
+    // Allow hitting them from spawn until they leave the bottom
+    return this.position.z > -18 && this.position.z < 18;
+  }
+
+  /**
    * Try to fire at the given target position.
    */
   tryFire(targetPos: THREE.Vector3, bulletManager: BulletManager, deltaTime: number): void {
