@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="description" content="Bolt (雷电) — A 2.5D modernized bullet-hell shooter game" />
-  <title>Bolt 雷电</title>
+  <meta name="description" content="Bolt (雷电) — 2.5D 现代化弹幕射击游戏" />
+  <title>雷电 Bolt</title>
   <link rel="stylesheet" href="/src/styles/index.css" />
 </head>
 <body>
@@ -13,14 +13,14 @@
 
     <!-- HUD Overlay -->
     <div id="hud" class="hud" style="display:none;">
-      <div id="hud-score" class="hud-score">SCORE: 0</div>
+      <div id="hud-score" class="hud-score">得分：0</div>
       <div class="hud-right">
         <div id="hud-lives" class="hud-lives"></div>
         <div id="hud-bombs" class="hud-bombs"></div>
         <div id="hud-weapon" class="hud-weapon"></div>
       </div>
       <div id="hud-boss-hp" class="hud-boss-hp hidden">
-        <div class="boss-hp-label">WARNING</div>
+        <div class="boss-hp-label">警告</div>
         <div class="boss-hp-bar-bg">
           <div id="boss-hp-bar-fill" class="boss-hp-bar-fill"></div>
         </div>
@@ -32,12 +32,12 @@
     <div id="screen-title" class="overlay-screen">
       <div class="title-content">
         <h1 class="game-title">BOLT<span class="title-cn">雷电</span></h1>
-        <div class="title-subtitle">2.5D Bullet Hell Shooter</div>
-        <button id="btn-start" class="menu-btn pulse">START GAME</button>
+        <div class="title-subtitle">2.5D 弹幕射击游戏</div>
+        <button id="btn-start" class="menu-btn pulse">开始游戏</button>
         <div class="title-controls">
-          <div>WASD — Move &nbsp;&nbsp; Shift — Slow</div>
-          <div>J — Shoot &nbsp;&nbsp; K — Bomb</div>
-          <div>1/2/3 — Switch Weapon</div>
+          <div>WASD — 移动 &nbsp;&nbsp; Shift — 慢速</div>
+          <div>J — 射击 &nbsp;&nbsp; K — 炸弹</div>
+          <div>1/2/3 — 切换武器</div>
         </div>
         <div id="title-highscore" class="title-highscore"></div>
       </div>
@@ -46,30 +46,30 @@
     <!-- Game Over Screen -->
     <div id="screen-gameover" class="overlay-screen" style="display:none;">
       <div class="overlay-content">
-        <h2 class="screen-heading red-glow">GAME OVER</h2>
+        <h2 class="screen-heading red-glow">游戏结束</h2>
         <div id="gameover-score" class="screen-score"></div>
-        <button id="btn-continue" class="menu-btn">CONTINUE (<span id="continues-left">3</span>)</button>
-        <button id="btn-title" class="menu-btn secondary">TITLE SCREEN</button>
+        <button id="btn-continue" class="menu-btn">继续 (<span id="continues-left">3</span>)</button>
+        <button id="btn-title" class="menu-btn secondary">返回标题</button>
       </div>
     </div>
 
     <!-- Level Clear Screen -->
     <div id="screen-levelclear" class="overlay-screen" style="display:none;">
       <div class="overlay-content">
-        <h2 class="screen-heading gold-glow">STAGE CLEAR!</h2>
+        <h2 class="screen-heading gold-glow">关卡完成!</h2>
         <div id="levelclear-score" class="screen-score"></div>
-        <button id="btn-nextlevel" class="menu-btn pulse">NEXT STAGE</button>
+        <button id="btn-nextlevel" class="menu-btn pulse">下一关</button>
       </div>
     </div>
 
     <!-- Victory Screen -->
     <div id="screen-victory" class="overlay-screen" style="display:none;">
       <div class="overlay-content">
-        <h2 class="screen-heading rainbow-glow">VICTORY!</h2>
-        <div class="victory-msg">All 3 stages cleared!</div>
+        <h2 class="screen-heading rainbow-glow">胜利!</h2>
+        <div class="victory-msg">全部 3 关已通关!</div>
         <div id="victory-score" class="screen-score"></div>
-        <button id="btn-restart" class="menu-btn pulse">PLAY AGAIN</button>
-        <button id="btn-title2" class="menu-btn secondary">TITLE SCREEN</button>
+        <button id="btn-restart" class="menu-btn pulse">再玩一次</button>
+        <button id="btn-title2" class="menu-btn secondary">返回标题</button>
       </div>
     </div>
 

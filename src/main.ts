@@ -242,7 +242,7 @@ class Game {
     this.player.position.set(0, 0, 5);
 
     const levelEl = document.getElementById('hud-level');
-    if (levelEl) levelEl.textContent = `STAGE ${levelNum}`;
+    if (levelEl) levelEl.textContent = `第 ${levelNum} 关`;
 
     if (levelNum === 3) {
       this.gameScene.setEnvironment('ocean');
@@ -277,7 +277,7 @@ class Game {
       case 'game_over': {
         if (this.screens.gameover) this.screens.gameover.style.display = 'flex';
         const el = document.getElementById('gameover-score');
-        if (el) el.textContent = `SCORE: ${this.player.score.toLocaleString()}`;
+        if (el) el.textContent = `得分：${this.player.score.toLocaleString()}`;
         const cl = document.getElementById('continues-left');
         if (cl) cl.textContent = String(this.state.continues);
         break;
@@ -285,14 +285,14 @@ class Game {
       case 'level_clear': {
         if (this.screens.levelclear) this.screens.levelclear.style.display = 'flex';
         const el = document.getElementById('levelclear-score');
-        if (el) el.textContent = `SCORE: ${this.player.score.toLocaleString()}`;
+        if (el) el.textContent = `得分：${this.player.score.toLocaleString()}`;
         this.audio.playSfx('level_clear');
         break;
       }
       case 'victory': {
         if (this.screens.victory) this.screens.victory.style.display = 'flex';
         const el = document.getElementById('victory-score');
-        if (el) el.textContent = `FINAL SCORE: ${this.player.score.toLocaleString()}`;
+        if (el) el.textContent = `最终得分：${this.player.score.toLocaleString()}`;
         this.state.saveHighScore(this.player.score);
         this.audio.playSfx('victory');
         this.audio.startBGM('victory');
@@ -388,17 +388,17 @@ class Game {
     const bossHpEl = document.getElementById('hud-boss-hp');
     const bossHpFill = document.getElementById('boss-hp-bar-fill');
 
-    if (scoreEl) scoreEl.textContent = `SCORE: ${this.player.score.toLocaleString()}`;
+    if (scoreEl) scoreEl.textContent = `得分：${this.player.score.toLocaleString()}`;
     if (livesEl) livesEl.textContent = '❤'.repeat(Math.max(0, this.player.lives));
     if (bombsEl) bombsEl.textContent = `💣 ×${this.player.bombs}`;
 
     const typeNames: Record<string, string> = {
-      vulcan: '🔴 Vulcan',
-      laser: '🔵 Laser',
-      homing: '🟣 Homing',
+      vulcan: '🔴 火神炮',
+      laser: '🔵 激光',
+      homing: '🟣 诱导激光',
     };
     if (weaponEl) {
-      const typeName = typeNames[this.weaponFactory.currentType] || 'Unknown';
+      const typeName = typeNames[this.weaponFactory.currentType] || '未知';
       weaponEl.textContent = `${typeName} Lv.${this.weaponFactory.currentLevel}`;
     }
 

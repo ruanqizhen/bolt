@@ -62,7 +62,7 @@ export class GameLoop {
       this.frameCount = 0;
       this.fpsTimer -= 1.0;
       if (this.fpsElement) {
-        this.fpsElement.textContent = `FPS: ${this.currentFps}`;
+        this.fpsElement.textContent = `帧率：${this.currentFps}`;
       }
     }
 
