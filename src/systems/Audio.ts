@@ -273,8 +273,12 @@ export class AudioManager {
     const buffer = this.ctx!.createBuffer(1, bufferSize, this.ctx!.sampleRate);
     const data = buffer.getChannelData(0);
 
-    const decay = size === 'boss' ? 0.3 : size === 'large' ? 0.2 : 0.15;
+    // Add randomization to make each explosion sound unique (±10% pitch/duration feel)
+    const rand = 1.0 + (Math.random() - 0.5) * 0.2;
+    const decay = (size === 'boss' ? 0.3 : size === 'large' ? 0.2 : 0.15) * rand;
+    
     for (let i = 0; i < bufferSize; i++) {
+      // Exponentially decaying white noise
       data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * decay));
     }
 
@@ -282,27 +286,39 @@ export class AudioManager {
     noise.buffer = buffer;
 
     const gain = this.ctx!.createGain();
-    const baseGain = size === 'boss' ? 0.5 : size === 'large' ? 0.35 : size === 'medium' ? 0.25 : 0.15;
-    gain.gain.setValueAtTime(baseGain, time);
+    const baseGain = size === 'boss' ? 0.6 : size === 'large' ? 0.45 : size === 'medium' ? 0.3 : 0.2;
+    gain.gain.setValueAtTime(baseGain * rand, time);
     gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
 
     const filter = this.ctx!.createBiquadFilter();
     filter.type = 'lowpass';
-    const baseFreq = size === 'boss' ? 300 : size === 'large' ? 500 : size === 'medium' ? 700 : 900;
+    const baseFreq = (size === 'boss' ? 300 : size === 'large' ? 500 : size === 'medium' ? 700 : 900) * rand;
     filter.frequency.setValueAtTime(baseFreq, time);
     filter.frequency.exponentialRampToValueAtTime(50, time + duration);
 
     noise.connect(filter).connect(gain).connect(output);
     noise.start(time);
 
-    // Add low frequency rumble for large explosions
+    // --- Impact Crack (High-freq sharp start) ---
+    const crackOsc = this.ctx!.createOscillator();
+    const crackGain = this.ctx!.createGain();
+    crackOsc.type = 'sawtooth';
+    crackOsc.frequency.setValueAtTime(1500 * rand, time);
+    crackOsc.frequency.exponentialRampToValueAtTime(100, time + 0.1);
+    crackGain.gain.setValueAtTime(size === 'boss' ? 0.3 : 0.15, time);
+    crackGain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+    crackOsc.connect(crackGain).connect(output);
+    crackOsc.start(time);
+    crackOsc.stop(time + 0.1);
+
+    // --- Sub-bass Rumble (Large explosions only) ---
     if (size === 'large' || size === 'boss') {
       const rumbleOsc = this.ctx!.createOscillator();
       const rumbleGain = this.ctx!.createGain();
       rumbleOsc.type = 'sine';
-      rumbleOsc.frequency.setValueAtTime(60, time);
+      rumbleOsc.frequency.setValueAtTime(60 * rand, time);
       rumbleOsc.frequency.exponentialRampToValueAtTime(30, time + duration);
-      rumbleGain.gain.setValueAtTime(size === 'boss' ? 0.4 : 0.25, time);
+      rumbleGain.gain.setValueAtTime(size === 'boss' ? 0.5 : 0.35, time);
       rumbleGain.gain.exponentialRampToValueAtTime(0.001, time + duration);
       rumbleOsc.connect(rumbleGain).connect(output);
       rumbleOsc.start(time);
@@ -313,14 +329,15 @@ export class AudioManager {
   private playHit(time: number, output: AudioNode): void {
     const osc = this.ctx!.createOscillator();
     const gain = this.ctx!.createGain();
+    // Sharper hit with higher frequency range
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(350, time);
-    osc.frequency.exponentialRampToValueAtTime(80, time + 0.1);
-    gain.gain.setValueAtTime(0.08, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+    osc.frequency.setValueAtTime(600, time);
+    osc.frequency.exponentialRampToValueAtTime(100, time + 0.08);
+    gain.gain.setValueAtTime(0.12, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
     osc.connect(gain).connect(output);
     osc.start(time);
-    osc.stop(time + 0.1);
+    osc.stop(time + 0.08);
   }
 
   private playPowerup(time: number, output: AudioNode): void {

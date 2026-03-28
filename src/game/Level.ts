@@ -243,6 +243,9 @@ export class Level {
       if (this.currentBoss?.alive && enemyIdx === this.enemies.length) {
         this.currentBoss.takeDamage(hit.bullet.damage);
         this.particles.emit('spark', hit.bullet.position.x, 0.3, hit.bullet.position.z);
+        if (this.audio) {
+          this.audio.playSfx('hit', { x: hit.bullet.position.x, z: hit.bullet.position.z });
+        }
         this.bulletManager.releaseBullet(hit.bullet);
         if (!this.currentBoss.alive) {
           player.score += this.currentBoss.score;
@@ -260,6 +263,9 @@ export class Level {
       if (!enemy || !enemy.alive) continue;
 
       this.particles.emit('spark', hit.bullet.position.x, 0.3, hit.bullet.position.z);
+      if (this.audio) {
+        this.audio.playSfx('hit', { x: hit.bullet.position.x, z: hit.bullet.position.z });
+      }
       this.bulletManager.releaseBullet(hit.bullet);
 
       if (enemy.takeDamage(hit.bullet.damage)) {
@@ -423,13 +429,24 @@ export class Level {
     // Play explosion sound based on enemy tier
     if (this.audio) {
       const tier = enemy.config.tier;
-      if (tier === 'scout') {
-        this.audio.playSfx('explosion_small', { x: enemy.position.x, z: enemy.position.z });
-      } else if (tier === 'fighter' || tier === 'heavy') {
-        this.audio.playSfx('explosion_medium', { x: enemy.position.x, z: enemy.position.z });
-      } else if (tier === 'turret' || tier === 'elite') {
-        this.audio.playSfx('explosion_large', { x: enemy.position.x, z: enemy.position.z });
+      let sfx: any = 'explosion_medium'; // Default fallback
+      
+      switch (tier) {
+        case 'scout':
+        case 'hidden':
+          sfx = 'explosion_small';
+          break;
+        case 'fighter':
+        case 'heavy':
+          sfx = 'explosion_medium';
+          break;
+        case 'turret':
+        case 'elite':
+          sfx = 'explosion_large';
+          break;
       }
+      
+      this.audio.playSfx(sfx, { x: enemy.position.x, z: enemy.position.z });
     }
 
     // Roll for drops
