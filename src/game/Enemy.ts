@@ -63,8 +63,8 @@ export class Enemy {
     this.fireTimer = config.attack.cooldown * (0.5 + Math.random() * 0.5);
 
     // Create visual mesh — textured plane from PNG
-    // Doubled size for better visibility (excluding bosses)
-    const sizeMultiplier = 2.0;
+    // Size multiplier for better visibility
+    const sizeMultiplier = 1.5;
     const tm = TextureManager.getInstance();
     const geom = new THREE.PlaneGeometry(config.size * 1.6 * sizeMultiplier, config.size * 1.6 * sizeMultiplier);
     const mat = new THREE.MeshBasicMaterial({
