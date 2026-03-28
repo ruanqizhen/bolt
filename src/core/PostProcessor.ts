@@ -5,41 +5,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-/**
- * Brightness/Gamma adjustment shader
- */
-const BrightnessShader = {
-  uniforms: {
-    tDiffuse: { value: null },
-    uBrightness: { value: 0.0 },
-    uGamma: { value: 1.0 },
-  },
-  vertexShader: `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: `
-    uniform sampler2D tDiffuse;
-    uniform float uBrightness;
-    uniform float uGamma;
-    varying vec2 vUv;
 
-    void main() {
-      vec4 color = texture2D(tDiffuse, vUv);
-
-      // Apply brightness
-      color.rgb += uBrightness;
-
-      // Apply gamma correction
-      color.rgb = pow(color.rgb, vec3(1.0 / uGamma));
-
-      gl_FragColor = color;
-    }
-  `,
-};
 
 /**
  * PostProcessor — Manages post-processing effects (FXAA, Brightness, Bloom)
@@ -51,9 +17,8 @@ export class PostProcessor {
   private renderPass: RenderPass;
   private bloomRenderPass: RenderPass;
   private bloomPass: UnrealBloomPass;
-  private bloomCopyPass: ShaderPass;
+  private bloomMixPass: ShaderPass;
   private fxaaPass: ShaderPass;
-  private brightnessPass: ShaderPass;
   private bloomLayer: THREE.Layers;
   private originalLayerMask: THREE.Layers;
   private scene: THREE.Scene;
@@ -81,11 +46,7 @@ export class PostProcessor {
     this.renderPass = new RenderPass(scene, camera);
     this.composer.addPass(this.renderPass);
 
-    // Brightness/Gamma adjustment
-    this.brightnessPass = new ShaderPass(BrightnessShader);
-    this.brightnessPass.uniforms['uBrightness'].value = 0.15;
-    this.brightnessPass.uniforms['uGamma'].value = 1.2;
-    this.composer.addPass(this.brightnessPass);
+
 
     // FXAA anti-aliasing
     this.fxaaPass = new ShaderPass(FXAAShader);
@@ -119,9 +80,10 @@ export class PostProcessor {
     this.bloomComposer.addPass(this.bloomPass);
 
     // Copy bloom to main composer using additive blending
-    const CopyShader = {
+    const MixShader = {
       uniforms: {
-        tDiffuse: { value: null },
+        tDiffuse: { value: null }, // Automatically bound to main composer output
+        tBloom: { value: null },   // Manually bound to bloom composer output
       },
       vertexShader: `
         varying vec2 vUv;
@@ -132,31 +94,22 @@ export class PostProcessor {
       `,
       fragmentShader: `
         uniform sampler2D tDiffuse;
+        uniform sampler2D tBloom;
         varying vec2 vUv;
         void main() {
           vec4 color = texture2D(tDiffuse, vUv);
-          // Add bloom color additively (ignore alpha)
-          gl_FragColor = vec4(color.rgb, 1.0);
+          vec4 bloomColor = texture2D(tBloom, vUv);
+          // Add bloom color additively directly in shader
+          gl_FragColor = color + bloomColor;
         }
       `
     };
 
-    this.bloomCopyPass = new ShaderPass(CopyShader);
-    this.bloomCopyPass.renderToScreen = true;
-    // Enable additive blending
-    this.bloomCopyPass.material.blending = THREE.AdditiveBlending;
-    this.bloomCopyPass.material.transparent = true;
-    this.bloomCopyPass.material.depthTest = false;
-    this.bloomCopyPass.material.depthWrite = false;
-    this.composer.addPass(this.bloomCopyPass);
-  }
-
-  setBrightness(brightness: number): void {
-    this.brightnessPass.uniforms['uBrightness'].value = brightness;
-  }
-
-  setGamma(gamma: number): void {
-    this.brightnessPass.uniforms['uGamma'].value = gamma;
+    this.bloomMixPass = new ShaderPass(MixShader);
+    this.bloomMixPass.renderToScreen = true;
+    this.bloomMixPass.material.depthTest = false;
+    this.bloomMixPass.material.depthWrite = false;
+    this.composer.addPass(this.bloomMixPass);
   }
 
   /**
@@ -191,8 +144,8 @@ export class PostProcessor {
     // Step 3: Restore camera layers before main render
     this.camera.layers.mask = originalLayers;
 
-    // Step 4: Set bloom texture for copy pass
-    this.bloomCopyPass.uniforms['tDiffuse'].value = this.bloomComposer.readBuffer.texture;
+    // Step 4: Set bloom texture for mix pass
+    this.bloomMixPass.uniforms['tBloom'].value = this.bloomComposer.readBuffer.texture;
 
     // Step 5: Render main scene with bloom overlay
     this.composer.render();

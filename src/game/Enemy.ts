@@ -69,6 +69,7 @@ export class Enemy {
     const geom = new THREE.PlaneGeometry(config.size * 1.6 * sizeMultiplier, config.size * 1.6 * sizeMultiplier);
     const mat = new THREE.MeshBasicMaterial({
       map: tm.getEnemy(config.id),
+      color: new THREE.Color(2.8, 2.8, 2.8), // Boost base texture brightness (No bloom, just brighter image)
       transparent: true,
       alphaTest: 0.1,
       side: THREE.DoubleSide,
@@ -78,8 +79,30 @@ export class Enemy {
     this.mesh.rotation.x = -Math.PI / 2;
     this.mesh.position.y = 0.1;
     this.position = this.mesh.position;
-    // Enable bloom for enemies (layer 1)
-    this.mesh.layers.set(1);
+    // Create dedicated glow silhouette on Layer 1
+    const glowScale = 1.35;
+    const glowGeom = new THREE.PlaneGeometry(
+      config.size * 1.6 * sizeMultiplier * glowScale,
+      config.size * 1.6 * sizeMultiplier * glowScale
+    );
+    const color = parseInt(config.color.replace('0x', ''), 16);
+    const hdrColor = new THREE.Color(color).multiplyScalar(1.2); // Reduced bloom intensity
+    const glowMat = new THREE.MeshBasicMaterial({
+      map: tm.getEnemy(config.id),
+      color: hdrColor,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      alphaTest: 0.05,
+    });
+    this.glowMesh = new THREE.Mesh(glowGeom, glowMat);
+    // Position slightly lower (in local Z, which is world -Y due to parent rotation)
+    this.glowMesh.position.z = -0.02;
+    // Set ONLY the glow silhouette to Layer 1 for selective bloom
+    this.glowMesh.layers.set(1);
+    this.mesh.add(this.glowMesh);
   }
 
   /**
@@ -106,7 +129,7 @@ export class Enemy {
    */
   tryFire(targetPos: THREE.Vector3, bulletManager: BulletManager, deltaTime: number): void {
     if (this.config.attack.type === 'none') return;
-    
+
     // Only fire if enemy is in visible game area
     if (!this.canFire()) return;
 
@@ -242,8 +265,8 @@ export class Enemy {
     if (this.hitFlashTimer > 0) {
       this.hitFlashTimer -= deltaTime;
       if (this.hitFlashTimer <= 0) {
-        // Reset color
-        (this.mesh.material as THREE.MeshBasicMaterial).color.setRGB(1, 1, 1);
+        // Reset color to boosted texture brightness
+        (this.mesh.material as THREE.MeshBasicMaterial).color.setRGB(1.8, 1.8, 1.8);
       }
     }
 
@@ -288,14 +311,14 @@ export class Enemy {
     const mat = this.mesh.material as THREE.MeshBasicMaterial;
     mat.map = tm.getEnemy(config.id);
     mat.needsUpdate = true;
-    mat.color.setRGB(1, 1, 1);
+    mat.color.setRGB(1.8, 1.8, 1.8); // Maintain boosted brightness for recycled enemies
 
     // Update glow texture and color
     if (this.glowMesh) {
       const glowMat = this.glowMesh.material as THREE.MeshBasicMaterial;
       glowMat.map = tm.getEnemy(config.id);
       const c = parseInt(config.color.replace('0x', ''), 16);
-      glowMat.color.set(c);
+      glowMat.color.set(c).multiplyScalar(1.5); // Reduced bloom intensity
       glowMat.needsUpdate = true;
     }
 

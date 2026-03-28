@@ -78,9 +78,7 @@ class Game {
       gameSize.width,
       gameSize.height
     );
-    // Normal brightness for foreground objects
-    this.postProcessor.setBrightness(0.0);
-    this.postProcessor.setGamma(1.0);
+
     // Enable strong bloom for player, enemies, and bullets (selective bloom)
     this.postProcessor.setBloomStrength(2.0); // Maximum bloom intensity
 

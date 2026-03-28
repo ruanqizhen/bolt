@@ -87,7 +87,6 @@ export class BulletManager {
     this.vulcanMesh = new THREE.InstancedMesh(vGeom, vMat, BulletManager.PLAYER_POOL_SIZE);
     this.vulcanMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.vulcanMesh.frustumCulled = false;
-    this.vulcanMesh.layers.set(1); // Enable bloom for player bullets
     scene.add(this.vulcanMesh);
 
     // Vulcan glow halo (wider, dimmer layer behind each tracer)
@@ -104,7 +103,6 @@ export class BulletManager {
     this.vulcanGlowMesh = new THREE.InstancedMesh(vGlowGeom, vGlowMat, BulletManager.PLAYER_POOL_SIZE);
     this.vulcanGlowMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.vulcanGlowMesh.frustumCulled = false;
-    this.vulcanGlowMesh.layers.set(1);
     scene.add(this.vulcanGlowMesh);
 
     // Laser — white-hot inner core
@@ -121,7 +119,6 @@ export class BulletManager {
     this.laserMesh = new THREE.InstancedMesh(lCoreGeom, lCoreMat, BulletManager.PLAYER_POOL_SIZE);
     this.laserMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.laserMesh.frustumCulled = false;
-    this.laserMesh.layers.set(1);
     scene.add(this.laserMesh);
 
     // Laser — blue outer sheath (wider glow)
@@ -138,7 +135,6 @@ export class BulletManager {
     this.laserGlowMesh = new THREE.InstancedMesh(lSheathGeom, lSheathMat, BulletManager.PLAYER_POOL_SIZE);
     this.laserGlowMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.laserGlowMesh.frustumCulled = false;
-    this.laserGlowMesh.layers.set(1);
     scene.add(this.laserGlowMesh);
 
     // Enemy bullets — smooth glowing orbs
@@ -153,7 +149,6 @@ export class BulletManager {
     this.enemyBulletMesh = new THREE.InstancedMesh(eGeom, eMat, BulletManager.ENEMY_POOL_SIZE);
     this.enemyBulletMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.enemyBulletMesh.frustumCulled = false;
-    this.enemyBulletMesh.layers.set(1); // Enable bloom for enemy bullets
     scene.add(this.enemyBulletMesh);
 
     // Enemy bullet glow halos (larger, dimmer)
@@ -168,7 +163,6 @@ export class BulletManager {
     this.enemyGlowMesh = new THREE.InstancedMesh(eGlowGeom, eGlowMat, BulletManager.ENEMY_POOL_SIZE);
     this.enemyGlowMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.enemyGlowMesh.frustumCulled = false;
-    this.enemyGlowMesh.layers.set(1);
     scene.add(this.enemyGlowMesh);
   }
 
@@ -374,7 +368,6 @@ class HomingBeamVisual {
     const geom = new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0.1)), 2, 0.1, 4, false);
     this.mesh = new THREE.Mesh(geom, mat);
     this.mesh.visible = false;
-    this.mesh.layers.set(1); // Enable bloom for homing beams
   }
 
   fire(start: THREE.Vector3, end: THREE.Vector3): void {

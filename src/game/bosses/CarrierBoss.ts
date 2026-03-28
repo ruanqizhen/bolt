@@ -27,6 +27,7 @@ export class CarrierBoss extends Boss {
     const bodyGeom = new THREE.PlaneGeometry(8, 4);
     const bodyMat = new THREE.MeshBasicMaterial({
       map: tm.getBoss('carrier_boss'),
+      color: new THREE.Color(2.8, 2.8, 2.8),
       transparent: true,
       alphaTest: 0.1,
       side: THREE.DoubleSide,
@@ -34,8 +35,23 @@ export class CarrierBoss extends Boss {
     const body = new THREE.Mesh(bodyGeom, bodyMat);
     body.rotation.x = -Math.PI / 2;
     body.position.y = 0.1;
-    body.layers.set(1); // Enable bloom for boss
     this.mesh.add(body);
+
+    const glowGeom = new THREE.PlaneGeometry(8 * 1.35, 4 * 1.35);
+    const glowMat = new THREE.MeshBasicMaterial({
+      map: tm.getBoss('carrier_boss'),
+      color: new THREE.Color(0x00aaff).multiplyScalar(1.2), // Blue glow
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      alphaTest: 0.05,
+    });
+    const glowMesh = new THREE.Mesh(glowGeom, glowMat);
+    glowMesh.position.z = -0.02; // Downward in world space
+    glowMesh.layers.set(1);
+    body.add(glowMesh);
   }
 
   private setupPhases(): void {

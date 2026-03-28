@@ -60,9 +60,27 @@ export class Player {
     this.bodyMesh.rotation.x = -Math.PI / 2;
     this.bodyMesh.position.y = 0.15;
     this.bodyMesh.renderOrder = 999;
-    // Enable bloom for player ship (layer 1)
-    this.bodyMesh.layers.set(1);
     this.mesh.add(this.bodyMesh);
+
+    // Glow silhouette — sits on Layer 1 to receive exclusive Bloom
+    const glowGeom = new THREE.PlaneGeometry(1.4 * 1.5, 1.8 * 1.5);
+    const glowMat = new THREE.MeshBasicMaterial({
+      map: tm.get('player/ship.png'),
+      color: 0x00ccff,   // Cyan tint
+      transparent: true,
+      opacity: 0.9,      // High opacity, bloom strength handles the fade
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthTest: true,
+      depthWrite: false,
+      alphaTest: 0.05,
+    });
+    this.glowMesh = new THREE.Mesh(glowGeom, glowMat);
+    this.glowMesh.rotation.x = -Math.PI / 2;
+    this.glowMesh.position.y = 0.12;
+    this.glowMesh.renderOrder = 998;
+    this.glowMesh.layers.set(1); // Bloom goes here
+    this.mesh.add(this.glowMesh);
 
     // Hitbox glow (center point for danmaku games)
     const hitboxGeom = new THREE.SphereGeometry(Player.HITBOX_RADIUS, 16, 16);
@@ -80,9 +98,9 @@ export class Player {
     // Energy shield (visible when invincible)
     const shieldGeom = new THREE.SphereGeometry(1.5, 32, 32);
     const shieldMat = new THREE.MeshBasicMaterial({
-      color: 0x4488ff,
+      color: 0x2266ee, // Darker base blue to prevent overwhelming bloom
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.15, // Lower initial opacity
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
     });
@@ -170,7 +188,7 @@ export class Player {
       // Pulse shield
       const shieldScale = 1 + Math.sin(this.flashTimer * 10) * 0.1;
       this.shieldMesh.scale.set(shieldScale, shieldScale, shieldScale);
-      (this.shieldMesh.material as THREE.MeshBasicMaterial).opacity = 0.3 + Math.sin(this.flashTimer * 5) * 0.1;
+      (this.shieldMesh.material as THREE.MeshBasicMaterial).opacity = 0.15 + Math.sin(this.flashTimer * 5) * 0.05;
       // Flash body
       this.mesh.visible = Math.sin(this.flashTimer * 20) > 0;
       if (this.invincibleTimer <= 0) {
