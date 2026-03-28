@@ -262,6 +262,9 @@ export class GameScene {
       const newTexture = tm.get(bgPath);
       if (newTexture && this.groundTexture !== newTexture) {
         this.groundTexture = newTexture;
+        this.groundTexture.wrapS = THREE.RepeatWrapping;
+        this.groundTexture.wrapT = THREE.RepeatWrapping;
+        this.groundTexture.repeat.set(4, 4);
         this.groundMat.map = newTexture;
         this.groundMat.needsUpdate = true;
       }
