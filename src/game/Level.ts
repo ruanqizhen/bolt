@@ -385,9 +385,38 @@ export class Level {
 
   private onEnemyKilled(enemy: Enemy, player: Player): void {
     player.score += enemy.score;
-    this.particles.emit('explosion', enemy.position.x, 0.5, enemy.position.z);
-    this.particles.emit('smoke', enemy.position.x, 0.3, enemy.position.z);
-    this.gameScene.spawnExplosionLight(enemy.position.clone(), 0xff6600, 3);
+    
+    // Determine explosion tier based on enemy size
+    const size = enemy.config.size;
+    let explosionTier: 'tiny' | 'small' | 'medium' | 'large' | 'massive';
+    let lightIntensity: number;
+    let lightColor: number;
+    
+    if (size < 0.3) {
+      explosionTier = 'tiny';
+      lightIntensity = 2;
+      lightColor = 0xffaa00;
+    } else if (size < 0.5) {
+      explosionTier = 'small';
+      lightIntensity = 3;
+      lightColor = 0xff6600;
+    } else if (size < 0.8) {
+      explosionTier = 'medium';
+      lightIntensity = 4;
+      lightColor = 0xff4400;
+    } else if (size < 1.1) {
+      explosionTier = 'large';
+      lightIntensity = 5;
+      lightColor = 0xff2200;
+    } else {
+      explosionTier = 'massive';
+      lightIntensity = 7;
+      lightColor = 0xff0000;
+    }
+    
+    // Create scaled explosion effects
+    this.particles.emitExplosion(explosionTier, enemy.position.x, 0.5, enemy.position.z);
+    this.gameScene.spawnExplosionLight(enemy.position.clone(), lightColor, lightIntensity);
 
     // Play explosion sound based on enemy tier
     if (this.audio) {
