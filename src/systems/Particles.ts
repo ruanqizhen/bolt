@@ -192,10 +192,9 @@ export class ParticleSystem {
     const mat = new THREE.MeshBasicMaterial({
       map: this.particleTexture,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.95,
       depthWrite: false,
       side: THREE.DoubleSide,
-      vertexColors: true,
       blending: THREE.AdditiveBlending,
     });
 
@@ -207,6 +206,10 @@ export class ParticleSystem {
     const colors = new Float32Array(ParticleSystem.MAX_PARTICLES * 3);
     this.colorAttr = new THREE.InstancedBufferAttribute(colors, 3);
     this.mesh.instanceColor = this.colorAttr;
+
+    // Enable both layer 0 (default) and layer 1 (bloom)
+    this.mesh.layers.enable(0);
+    this.mesh.layers.enable(1);
 
     scene.add(this.mesh);
 
@@ -389,28 +392,32 @@ export class ParticleSystem {
 
       this.mesh.setMatrixAt(visibleCount, this.dummy.matrix);
 
-      // Color with fade
-      this.colorAttr.setXYZ(visibleCount, p.color.r * alpha, p.color.g * alpha, p.color.b * alpha);
+      // Color with fade and HDR boost for explosive glow
+      const hdrBoost = 2.5;
+      this.colorAttr.setXYZ(
+        visibleCount, 
+        p.color.r * alpha * hdrBoost, 
+        p.color.g * alpha * hdrBoost, 
+        p.color.b * alpha * hdrBoost
+      );
 
       visibleCount++;
     }
 
-    // Hide remaining instances
-    for (let i = visibleCount; i < this.mesh.count; i++) {
-      this.dummy.position.set(0, -200, 0);
+    // Move remaining instances off-screen & scale 0. 
+    // This is extra insurance against any "center-flashing" glitches if certain drivers/browsers
+    // delay the .count update.
+    for (let i = visibleCount; i < ParticleSystem.MAX_PARTICLES; i++) {
+      this.dummy.position.set(0, -100, 0);
       this.dummy.scale.set(0, 0, 0);
       this.dummy.updateMatrix();
       this.mesh.setMatrixAt(i, this.dummy.matrix);
     }
 
-    // Only update count if there are visible particles
-    if (visibleCount > 0) {
-      this.mesh.count = visibleCount;
-      this.mesh.instanceMatrix.needsUpdate = true;
-      this.colorAttr.needsUpdate = true;
-    } else {
-      this.mesh.count = 0;
-    }
+    // Simply set count to visible instances - renderer handles the rest
+    this.mesh.count = visibleCount;
+    this.mesh.instanceMatrix.needsUpdate = true;
+    this.colorAttr.needsUpdate = true;
   }
 
   /**

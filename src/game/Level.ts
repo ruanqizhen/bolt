@@ -242,8 +242,8 @@ export class Level {
       // Boss hit
       if (this.currentBoss?.alive && enemyIdx === this.enemies.length) {
         this.currentBoss.takeDamage(hit.bullet.damage);
-        this.bulletManager.releaseBullet(hit.bullet);
         this.particles.emit('spark', hit.bullet.position.x, 0.3, hit.bullet.position.z);
+        this.bulletManager.releaseBullet(hit.bullet);
         if (!this.currentBoss.alive) {
           player.score += this.currentBoss.score;
           this.bossDefeated = true;
@@ -259,8 +259,8 @@ export class Level {
       const enemy = this.enemies[enemyIdx];
       if (!enemy || !enemy.alive) continue;
 
-      this.bulletManager.releaseBullet(hit.bullet);
       this.particles.emit('spark', hit.bullet.position.x, 0.3, hit.bullet.position.z);
+      this.bulletManager.releaseBullet(hit.bullet);
 
       if (enemy.takeDamage(hit.bullet.damage)) {
         this.onEnemyKilled(enemy, player);

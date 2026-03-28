@@ -258,7 +258,7 @@ export class BulletManager {
     this.dummy.scale.set(1, 1, 1);
     
     mesh.instanceMatrix.needsUpdate = true;
-    mesh.count = Math.max(activeCount, 1);
+    mesh.count = activeCount;
   }
 
   /**
