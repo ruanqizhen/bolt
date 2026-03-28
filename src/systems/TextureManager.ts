@@ -46,7 +46,7 @@ export class TextureManager {
 
   private loadTexture(relativePath: string): Promise<THREE.Texture> {
     return new Promise((resolve) => {
-      const fullPath = `/src/assets/images/${relativePath}`;
+      const fullPath = `/assets/images/${relativePath}`;
       this.loader.load(
         fullPath,
         (texture) => {
