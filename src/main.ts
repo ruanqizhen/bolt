@@ -79,8 +79,8 @@ class Game {
       gameSize.height
     );
 
-    // Enable strong bloom for player, enemies, and bullets (selective bloom)
-    this.postProcessor.setBloomStrength(2.0); // Maximum bloom intensity
+    // Enable balanced bloom for player, enemies, and bullets
+    this.postProcessor.setBloomStrength(1.2); // Balanced bloom intensity
 
     // UI elements
     this.screens.title = document.getElementById('screen-title');

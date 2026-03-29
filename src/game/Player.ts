@@ -63,7 +63,7 @@ export class Player {
     this.mesh.add(this.bodyMesh);
 
     // Glow silhouette — sits on Layer 1 to receive exclusive Bloom
-    const glowGeom = new THREE.PlaneGeometry(1.4 * 1.5, 1.8 * 1.5);
+    const glowGeom = new THREE.PlaneGeometry(1.4 * 1.1, 1.8 * 1.1);
     const glowMat = new THREE.MeshBasicMaterial({
       map: tm.get('player/ship.png'),
       color: 0x00ccff,   // Cyan tint

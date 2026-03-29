@@ -80,7 +80,7 @@ export class Enemy {
     this.mesh.position.y = 0.1;
     this.position = this.mesh.position;
     // Create dedicated glow silhouette on Layer 1
-    const glowScale = 1.35;
+    const glowScale = 1.08;
     const glowGeom = new THREE.PlaneGeometry(
       config.size * 1.6 * sizeMultiplier * glowScale,
       config.size * 1.6 * sizeMultiplier * glowScale

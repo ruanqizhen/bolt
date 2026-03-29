@@ -393,7 +393,7 @@ export class ParticleSystem {
       this.mesh.setMatrixAt(visibleCount, this.dummy.matrix);
 
       // Color with fade and HDR boost for explosive glow
-      const hdrBoost = 2.5;
+      const hdrBoost = 1.5;
       this.colorAttr.setXYZ(
         visibleCount, 
         p.color.r * alpha * hdrBoost, 

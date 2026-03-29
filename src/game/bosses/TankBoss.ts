@@ -37,7 +37,7 @@ export class TankBoss extends Boss {
     body.position.y = 0.1;
     this.mesh.add(body);
 
-    const glowGeom = new THREE.PlaneGeometry(5 * 1.35, 3 * 1.35);
+    const glowGeom = new THREE.PlaneGeometry(5 * 1.08, 3 * 1.08);
     const glowMat = new THREE.MeshBasicMaterial({
       map: tm.getBoss('tank_boss'),
       color: new THREE.Color(0xff6600).multiplyScalar(1.2), // Orange glow

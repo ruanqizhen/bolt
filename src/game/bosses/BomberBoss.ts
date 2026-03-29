@@ -40,7 +40,7 @@ export class BomberBoss extends Boss {
     body.position.y = 0.1;
     this.mesh.add(body);
 
-    const glowGeom = new THREE.PlaneGeometry(6 * 1.35, 2.5 * 1.35);
+    const glowGeom = new THREE.PlaneGeometry(6 * 1.08, 2.5 * 1.08);
     const glowMat = new THREE.MeshBasicMaterial({
       map: tm.getBoss('bomber_boss'),
       color: new THREE.Color(0xff2222).multiplyScalar(1.2), // Red glow

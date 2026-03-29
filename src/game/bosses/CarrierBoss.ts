@@ -37,7 +37,7 @@ export class CarrierBoss extends Boss {
     body.position.y = 0.1;
     this.mesh.add(body);
 
-    const glowGeom = new THREE.PlaneGeometry(8 * 1.35, 4 * 1.35);
+    const glowGeom = new THREE.PlaneGeometry(8 * 1.08, 4 * 1.08);
     const glowMat = new THREE.MeshBasicMaterial({
       map: tm.getBoss('carrier_boss'),
       color: new THREE.Color(0x00aaff).multiplyScalar(1.2), // Blue glow

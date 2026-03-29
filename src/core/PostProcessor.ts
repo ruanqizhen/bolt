@@ -33,10 +33,10 @@ export class PostProcessor {
   ) {
     this.scene = scene;
     this.camera = camera;
-    
-    // Enable camera to see both layer 0 (background) and layer 1 (bloom objects)
-    this.camera.layers.enable(0);
-    this.camera.layers.enable(1);
+
+    // Default: camera only sees layer 0 (background/hud)
+    // Layer 1 (bloom objects) will be manually rendered in the bloom pass only
+    this.camera.layers.set(0); 
     this.originalLayerMask = camera.layers;
 
     // Main composer for final output
@@ -66,8 +66,8 @@ export class PostProcessor {
     this.bloomPass = new UnrealBloomPass(
       new THREE.Vector2(width, height),
       2.0,    // strength - maximum bloom intensity
-      0.8,    // radius - large bloom spread
-      0.05    // low threshold - more objects glow
+      0.1,    // radius - very small bloom spread
+      0.21    // higher threshold - sharper highlights, less "blobby" glow
     );
 
     // Separate render pass for bloom (only renders layer 1)
