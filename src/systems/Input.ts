@@ -135,7 +135,6 @@ export class Input {
 
   // ---- Touch ----
   private onTouchStart(e: TouchEvent): void {
-    e.preventDefault();
     const touch = e.touches[0];
     this.touchActive = true;
     this.touchPos = { x: touch.clientX, y: touch.clientY };
@@ -150,13 +149,11 @@ export class Input {
   }
 
   private onTouchMove(e: TouchEvent): void {
-    e.preventDefault();
     const touch = e.touches[0];
     this.touchPos = { x: touch.clientX, y: touch.clientY };
   }
 
   private onTouchEnd(e: TouchEvent): void {
-    e.preventDefault();
     this.touchActive = false;
   }
 

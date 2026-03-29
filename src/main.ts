@@ -146,21 +146,45 @@ class Game {
   }
 
   private setupButtons(): void {
-    // Add hover sounds to all buttons
-    document.querySelectorAll('.menu-btn').forEach(btn => {
+    // Helper to add responsive click/touch handler
+    const addResponsiveListener = (id: string, callback: () => void) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+
+      // Pulse sound on hover/touch
       btn.addEventListener('mouseenter', () => {
         this.audio.playSfx('menu_hover');
       });
-    });
+      btn.addEventListener('touchstart', () => {
+        this.audio.playSfx('menu_hover');
+      }, { passive: true });
 
-    document.getElementById('btn-start')?.addEventListener('click', () => {
-      this.audio.playSfx('menu_select');
-      this.audio.init();
+      // Action handler with double-fire prevention
+      let lastTrigger = 0;
+      const handleAction = (e: Event) => {
+        const now = Date.now();
+        if (now - lastTrigger < 500) return;
+        lastTrigger = now;
+
+        // Ensure audio context is initialized on first interaction
+        this.audio.init();
+        
+        this.audio.playSfx('menu_select');
+        callback();
+      };
+
+      btn.addEventListener('click', handleAction);
+      btn.addEventListener('touchend', (e) => {
+        e.preventDefault(); // Prevent simulated click
+        handleAction(e);
+      });
+    };
+
+    addResponsiveListener('btn-start', () => {
       this.startGame();
     });
 
-    document.getElementById('btn-continue')?.addEventListener('click', () => {
-      this.audio.playSfx('menu_select');
+    addResponsiveListener('btn-continue', () => {
       if (this.state.useContinue()) {
         this.audio.playSfx('continue');
         this.player.respawn();
@@ -169,26 +193,22 @@ class Game {
       }
     });
 
-    document.getElementById('btn-title')?.addEventListener('click', () => {
-      this.audio.playSfx('menu_select');
+    addResponsiveListener('btn-title', () => {
       this.state.reset();
       this.showScreen('title');
     });
 
-    document.getElementById('btn-nextlevel')?.addEventListener('click', () => {
-      this.audio.playSfx('menu_select');
+    addResponsiveListener('btn-nextlevel', () => {
       this.state.nextLevel();
       this.startLevel(this.state.currentLevel);
       this.showScreen('playing');
     });
 
-    document.getElementById('btn-restart')?.addEventListener('click', () => {
-      this.audio.playSfx('menu_select');
+    addResponsiveListener('btn-restart', () => {
       this.startGame();
     });
 
-    document.getElementById('btn-title2')?.addEventListener('click', () => {
-      this.audio.playSfx('menu_select');
+    addResponsiveListener('btn-title2', () => {
       this.state.reset();
       this.showScreen('title');
     });
