@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { BulletManager } from './Bullet';
+import { MissileManager } from './MissileManager';
 import { TextureManager } from '../systems/TextureManager';
 
 /**
@@ -127,7 +128,7 @@ export class Enemy {
   /**
    * Try to fire at the given target position.
    */
-  tryFire(targetPos: THREE.Vector3, bulletManager: BulletManager, deltaTime: number): void {
+  tryFire(targetPos: THREE.Vector3, bulletManager: BulletManager, missileManager: MissileManager, deltaTime: number): void {
     if (this.config.attack.type === 'none') return;
 
     // Only fire if enemy is in visible game area
@@ -236,6 +237,21 @@ export class Enemy {
         }
         break;
       }
+
+      case 'missile':
+        for (let i = 0; i < atk.bullets; i++) {
+          const spread = (i - (atk.bullets - 1) / 2) * 1.5;
+          const spawnPos = this.position.clone();
+          spawnPos.x += spread;
+          
+          missileManager.spawnMissile(
+            spawnPos,
+            dir.clone(),
+            atk.speed || 5,
+            20 // Missile HP
+          );
+        }
+        break;
     }
   }
 

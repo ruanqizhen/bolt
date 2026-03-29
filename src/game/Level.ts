@@ -4,6 +4,7 @@ import { EnemyAI } from './EnemyAI';
 import { BulletManager } from './Bullet';
 import { DropManager } from './Drops';
 import { Boss } from './Boss';
+import { MissileManager } from './MissileManager';
 import { TankBoss } from './bosses/TankBoss';
 import { BomberBoss } from './bosses/BomberBoss';
 import { CarrierBoss } from './bosses/CarrierBoss';
@@ -55,6 +56,7 @@ export class Level {
   // Drops
   public dropManager: DropManager;
   public medalSystem: MedalSystem;
+  private missileManager: MissileManager;
 
   // Difficulty
   public difficultyManager: DifficultyManager;
@@ -79,6 +81,7 @@ export class Level {
     this.dropManager = new DropManager(scene);
     this.medalSystem = new MedalSystem();
     this.difficultyManager = new DifficultyManager();
+    this.missileManager = new MissileManager(scene, particles);
 
     // Build config lookup
     for (const cfg of enemyConfigs as EnemyConfig[]) {
@@ -123,6 +126,7 @@ export class Level {
 
     // Clear bullets
     this.bulletManager.clearAll();
+    this.missileManager.clearAll();
     this.particles.clear();
   }
 
@@ -169,7 +173,7 @@ export class Level {
       if (!enemy.alive) continue;
 
       enemy.mesh.position.copy(enemy.position);
-      enemy.tryFire(player.position, this.bulletManager, deltaTime);
+      enemy.tryFire(player.position, this.bulletManager, this.missileManager, deltaTime);
       enemy.updateVisuals(deltaTime);
 
       // Off-screen cleanup
@@ -183,6 +187,9 @@ export class Level {
     if (this.currentBoss) {
       this.currentBoss.update(player.position, deltaTime);
     }
+
+    // --- Update missiles ---
+    this.missileManager.update(player.position, deltaTime);
 
     // --- Bomb damage ---
     const bombDamage = bombSystem.update(deltaTime);
@@ -219,7 +226,8 @@ export class Level {
       player,
       this.bulletManager.getActivePlayerBullets(),
       this.bulletManager.getActiveEnemyBullets(),
-      enemyHitboxes
+      enemyHitboxes,
+      this.missileManager.getActiveMissiles()
     );
 
     // Player hit
@@ -235,7 +243,7 @@ export class Level {
       }
     }
 
-    // Bullet hits
+    // Bullet hits on enemies
     for (const hit of result.bulletHits) {
       const enemyIdx = hit.enemyIndex;
 
@@ -270,6 +278,24 @@ export class Level {
 
       if (enemy.takeDamage(hit.bullet.damage)) {
         this.onEnemyKilled(enemy, player);
+      }
+    }
+
+    // Bullet hits on missiles
+    for (const hit of result.missileHits) {
+      this.particles.emit('spark', hit.bullet.position.x, 0.3, hit.bullet.position.z);
+      if (this.audio) {
+        this.audio.playSfx('hit', { x: hit.bullet.position.x, z: hit.bullet.position.z });
+      }
+      this.bulletManager.releaseBullet(hit.bullet);
+
+      if (hit.missile.takeDamage(hit.bullet.damage)) {
+        // Missile destroyed!
+        this.particles.emitExplosion('tiny', hit.missile.position.x, 0.5, hit.missile.position.z);
+        if (this.audio) {
+          this.audio.playSfx('explosion_small', { x: hit.missile.position.x, z: hit.missile.position.z });
+        }
+        this.missileManager.releaseMissile(hit.missile);
       }
     }
 
@@ -496,5 +522,6 @@ export class Level {
     }
     this.currentBoss?.dispose();
     this.dropManager.dispose();
+    this.missileManager.dispose();
   }
 }

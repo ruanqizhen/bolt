@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { BulletData } from '../game/Bullet';
 import { Player } from '../game/Player';
+import { EnemyMissile } from '../game/EnemyMissile';
 
 /**
  * Simple Quadtree node for spatial partitioning.
@@ -111,10 +112,12 @@ class QuadTree {
 export interface CollisionResult {
   /** Player was hit by an enemy bullet */
   playerHit: boolean;
-  /** Bullets that hit enemies: [bullet, enemyIndex] pairs */
+  /** Bullets that hit enemies */
   bulletHits: Array<{ bullet: BulletData; enemyIndex: number }>;
   /** Player collided with an enemy body */
   playerEnemyCollision: number | null;
+  /** Bullets that hit missiles */
+  missileHits: Array<{ bullet: BulletData; missile: EnemyMissile }>;
 }
 
 /**
@@ -146,17 +149,19 @@ export class CollisionSystem {
     player: Player,
     playerBullets: BulletData[],
     enemyBullets: BulletData[],
-    enemies: EnemyHitbox[]
+    enemies: EnemyHitbox[],
+    missiles: EnemyMissile[]
   ): CollisionResult {
     const result: CollisionResult = {
       playerHit: false,
       bulletHits: [],
       playerEnemyCollision: null,
+      missileHits: [],
     };
 
     if (!player.isAlive) return result;
 
-    // 1. Player vs enemy bullets (sphere collision, hitbox radius = 0.1)
+    // 1a. Player vs enemy bullets (sphere collision, hitbox radius = 0.1)
     if (!player.isInvincible) {
       for (const bullet of enemyBullets) {
         const dx = bullet.position.x - player.position.x;
@@ -167,10 +172,24 @@ export class CollisionSystem {
           break;
         }
       }
+      
+      if (result.playerHit) return result;
+
+      // 1b. Player vs enemy missiles (radius = 0.25)
+      for (const missile of missiles) {
+        if (!missile.active) continue;
+        const dx = missile.position.x - player.position.x;
+        const dz = missile.position.z - player.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < Player.BODY_RADIUS + 0.25) {
+          result.playerHit = true;
+          break;
+        }
+      }
     }
 
     // 2. Player vs enemy bodies (body radius = 1.2)
-    if (!player.isInvincible) {
+    if (!player.isInvincible && !result.playerHit) {
       for (let i = 0; i < enemies.length; i++) {
         const enemy = enemies[i];
         if (!enemy.alive || enemy.inView === false) continue;
@@ -184,7 +203,7 @@ export class CollisionSystem {
       }
     }
 
-    // 3. Player bullets vs enemies (Quadtree)
+    // 3. Player bullets vs [enemies + missiles] (Quadtree)
     this.quadTree.clear();
 
     // Insert enemies into quadtree (only those in view)
@@ -198,22 +217,40 @@ export class CollisionSystem {
       });
     }
 
+    // Insert missiles into quadtree
+    for (const missile of missiles) {
+      if (!missile.active) continue;
+      this.quadTree.insert({
+        position: missile.position,
+        radius: 0.3,
+        data: missile,
+      });
+    }
+
     // Query for each player bullet and deduplicate hits
     const queryResults: QuadItem[] = [];
-    const hitSet = new Set<string>(); // Track unique bullet-enemy hits
+    const hitSet = new Set<string>(); // Track unique bullet-target hits
 
     for (const bullet of playerBullets) {
       queryResults.length = 0;
       this.quadTree.query(bullet.position, 0.3, queryResults);
       for (const hit of queryResults) {
-        // Create unique key for bullet-enemy pair to prevent duplicate hits
-        const hitKey = `${bullet.position.x},${bullet.position.z}-${hit.data as number}`;
+        // Create unique key for bullet-target pair to prevent duplicate hits
+        const hitKey = `${bullet.position.x.toFixed(2)},${bullet.position.z.toFixed(2)}-${hit.data.id || hit.data}`;
         if (!hitSet.has(hitKey)) {
           hitSet.add(hitKey);
-          result.bulletHits.push({
-            bullet,
-            enemyIndex: hit.data as number,
-          });
+          
+          if (typeof hit.data === 'number') {
+            result.bulletHits.push({
+              bullet,
+              enemyIndex: hit.data,
+            });
+          } else {
+            result.missileHits.push({
+              bullet,
+              missile: hit.data as EnemyMissile,
+            });
+          }
         }
       }
     }
