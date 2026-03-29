@@ -47,9 +47,7 @@ export class TextureManager {
   private loadTexture(relativePath: string): Promise<THREE.Texture> {
     return new Promise((resolve) => {
       // Use different paths for dev vs production
-      const fullPath = import.meta.env.DEV
-        ? `/src/assets/images/${relativePath}`
-        : `/assets/images/${relativePath}`;
+      const fullPath = `/assets/images/${relativePath}`;
       this.loader.load(
         fullPath,
         (texture) => {
