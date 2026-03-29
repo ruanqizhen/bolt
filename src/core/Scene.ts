@@ -196,9 +196,11 @@ export class GameScene {
           vUv = uv * 4.0 + uTextureOffset;
           vec4 modelPosition = modelMatrix * vec4(position, 1.0);
 
-          // Gerstner-like wave displacement
-          float elevation = sin(modelPosition.x * 0.5 + uTime * 1.5) * 0.4
-                          + sin(modelPosition.y * 0.8 + uTime * 2.0) * 0.4;
+          // More complex wave displacement (3 layers with non-harmonic frequencies)
+          float wave1 = sin(modelPosition.x * 0.6 + modelPosition.y * 0.4 + uTime * 1.8) * 0.35;
+          float wave2 = sin(modelPosition.x * -0.4 + modelPosition.y * 0.9 + uTime * 2.2) * 0.3;
+          float wave3 = sin(modelPosition.x * 0.9 - modelPosition.y * 0.3 + uTime * 1.2) * 0.25;
+          float elevation = wave1 + wave2 + wave3;
 
           modelPosition.z += elevation; // z is up due to rotation.x = -PI/2
           vElevation = elevation;
@@ -220,17 +222,17 @@ export class GameScene {
           // Sample the ocean texture
           vec3 texColor = texture2D(uTexture, vUv).rgb;
           
-          // Mix colors based on elevation for depth effect
-          float mixStrength = (vElevation + 0.8) * 0.5;
-          vec3 depthColor = mix(uColorDeep, uColorShallow, mixStrength);
+          // Mix colors based on elevation for depth effect (using power for non-linear transition)
+          float mixStrength = clamp((vElevation + 0.9) * 0.55, 0.0, 1.0);
+          vec3 depthColor = mix(uColorDeep, uColorShallow, pow(mixStrength, 1.5));
           
           // Combine texture with procedural depth highlights
-          vec3 color = mix(texColor, depthColor, 0.45);
+          vec3 color = mix(texColor, depthColor, 0.5);
 
-          // Add foam on wave peaks
-          float foam = step(0.65, vElevation);
+          // Subtle foam/sparkle on wave peaks
+          float foam = smoothstep(0.65, 0.9, vElevation);
 
-          color += vec3(1.0) * foam * 0.5;
+          color += vec3(0.8, 0.9, 1.0) * foam * 0.35;
 
           gl_FragColor = vec4(color, 1.0);
         }
