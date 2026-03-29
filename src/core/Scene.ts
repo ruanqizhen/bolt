@@ -184,14 +184,16 @@ export class GameScene {
         uColorShallow: { value: new THREE.Color(0x1a5a8a) },
         uGridColor: { value: new THREE.Color(0x4aaaff) },
         uTexture: { value: null as THREE.Texture | null },
+        uTextureOffset: { value: new THREE.Vector2(0, 0) },
       },
       vertexShader: `
         uniform float uTime;
+        uniform vec2 uTextureOffset;
         varying vec2 vUv;
         varying float vElevation;
 
         void main() {
-          vUv = uv;
+          vUv = uv * 4.0 + uTextureOffset;
           vec4 modelPosition = modelMatrix * vec4(position, 1.0);
 
           // Gerstner-like wave displacement
@@ -225,15 +227,9 @@ export class GameScene {
           // Combine texture with procedural depth highlights
           vec3 color = mix(texColor, depthColor, 0.45);
 
-          // Add a subtle tech grid over the ocean
-          float gridX = step(0.98, fract(vUv.x * 40.0));
-          float gridY = step(0.98, fract(vUv.y * 40.0));
-          float grid = max(gridX, gridY);
-
           // Add foam on wave peaks
           float foam = step(0.65, vElevation);
 
-          color += uGridColor * grid * 0.3;
           color += vec3(1.0) * foam * 0.5;
 
           gl_FragColor = vec4(color, 1.0);
@@ -372,10 +368,7 @@ export class GameScene {
       this.oceanMat.uniforms.uTime.value = this.time;
       
       // Also scroll the ocean texture if it exists
-      const tex = this.oceanMat.uniforms.uTexture.value as THREE.Texture;
-      if (tex) {
-        tex.offset.y += this.groundSpeed * deltaTime * 0.05;
-      }
+      this.oceanMat.uniforms.uTextureOffset.value.y += this.groundSpeed * deltaTime * 0.05;
     }
 
     // Cloud scrolling (half speed of ground, adjusted for 2x2 repeat vs 4x4 ground)
