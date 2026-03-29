@@ -117,7 +117,7 @@ class Game {
 
   private initGameSystems(): void {
     // Player
-    this.player = new Player();
+    this.player = new Player(this.renderer);
     this.gameScene.scene.add(this.player.mesh);
     this.player.position.set(0, 0, 5);
 

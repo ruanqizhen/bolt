@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { InputState, Input } from '../systems/Input';
 import { Camera } from '../core/Camera';
+import { Renderer } from '../core/Renderer';
 import { TextureManager } from '../systems/TextureManager';
 
 /**
@@ -21,6 +22,7 @@ export class Player {
   public isInvincible = false;
   private invincibleTimer = 0;
   private static readonly INVINCIBLE_DURATION = 2.0; // seconds
+  private renderer: Renderer;
 
   // Movement
   private static readonly NORMAL_SPEED = 6;
@@ -38,7 +40,8 @@ export class Player {
   private glowMesh!: THREE.Mesh;
   private flashTimer = 0;
 
-  constructor() {
+  constructor(renderer: Renderer) {
+    this.renderer = renderer;
     this.mesh = new THREE.Group();
     this.position = this.mesh.position;
     this.createVisuals();
@@ -164,9 +167,14 @@ export class Player {
 
     // Mouse/touch drag
     if (dragDelta) {
-      const sensitivity = 0.03;
-      this.position.x += dragDelta.dx * sensitivity;
-      this.position.z += dragDelta.dy * sensitivity;
+      const worldSize = camera.getVisibleSize();
+      const pixelSize = this.renderer.getGamePixelSize();
+      
+      const sensitivityX = worldSize.width / pixelSize.width;
+      const sensitivityZ = worldSize.height / pixelSize.height;
+      
+      this.position.x += dragDelta.dx * sensitivityX;
+      this.position.z += dragDelta.dy * sensitivityZ;
     }
 
     // Clamp to bounds
