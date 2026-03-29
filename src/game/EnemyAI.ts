@@ -8,6 +8,7 @@ import { Enemy } from './Enemy';
 export class EnemyAI {
   private throttleAccum = 0;
   private static readonly AI_INTERVAL = 1 / 10; // 10 FPS
+  private static readonly SCROLL_SPEED = 4.0; // Base speed for ground units to match environment scroll
 
   /**
    * Update all enemy AI. Call every frame; internally throttles to 10 FPS.
@@ -39,7 +40,8 @@ export class EnemyAI {
           this.updatePatrol(enemy, dt);
           break;
         case 'stationary':
-          // No movement
+          // Move down at scroll speed to appear fixed to the ground
+          enemy.position.z += EnemyAI.SCROLL_SPEED * dt;
           break;
         case 'spawn_units':
           this.updateLinear(enemy, dt * 0.5);

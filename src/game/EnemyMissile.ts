@@ -29,27 +29,27 @@ export class EnemyMissile implements Poolable {
     this.mesh = new THREE.Group();
 
     // 1. Rocket Body (Main cylindrical hull)
-    const bodyGeom = new THREE.CylinderGeometry(0.12, 0.12, 0.6, 8);
+    const bodyGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.5, 8);
     bodyGeom.rotateX(Math.PI / 2); // Point along Z
     const bodyMat = new THREE.MeshPhongMaterial({
-      color: 0xdddd00,
-      emissive: 0x553300,
-      shininess: 120
+      color: 0xcccc00,
+      emissive: 0x332200,
+      shininess: 80
     });
     this.bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
     this.mesh.add(this.bodyMesh);
 
-    // 2. Rocket Nose (Red tip)
-    const noseGeom = new THREE.ConeGeometry(0.12, 0.3, 8);
+    // 2. Rocket Nose (Red tip - now yellow)
+    const noseGeom = new THREE.ConeGeometry(0.08, 0.25, 8);
     noseGeom.rotateX(Math.PI / 2);
-    noseGeom.translate(0, 0, 0.35); // Offset to tip
-    const noseMat = new THREE.MeshPhongMaterial({ color: 0xffcc00 });
+    noseGeom.translate(0, 0, 0.3); // Offset to tip
+    const noseMat = new THREE.MeshPhongMaterial({ color: 0xbb9900 });
     const noseMesh = new THREE.Mesh(noseGeom, noseMat);
     this.mesh.add(noseMesh);
 
     // 3. Fins (Small plates at back)
-    const finGeom = new THREE.BoxGeometry(0.4, 0.02, 0.2);
-    const finMat = new THREE.MeshPhongMaterial({ color: 0x666666 });
+    const finGeom = new THREE.BoxGeometry(0.25, 0.015, 0.15);
+    const finMat = new THREE.MeshPhongMaterial({ color: 0x555544 });
     const fins1 = new THREE.Mesh(finGeom, finMat);
     fins1.position.z = -0.2;
     this.mesh.add(fins1);
@@ -59,12 +59,12 @@ export class EnemyMissile implements Poolable {
     this.mesh.add(fins2);
 
     // 4. Glow Overlay (Layer 1 for bloom)
-    const glowGeom = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 6);
+    const glowGeom = new THREE.CylinderGeometry(0.1, 0.1, 0.6, 6);
     glowGeom.rotateX(Math.PI / 2);
     const glowMat = new THREE.MeshBasicMaterial({
-      color: 0xffff00,
+      color: 0xccaa00,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.4,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });

@@ -240,14 +240,16 @@ export class Enemy {
 
       case 'missile':
         for (let i = 0; i < atk.bullets; i++) {
-          const spread = (i - (atk.bullets - 1) / 2) * 1.5;
+          // Wider spread for silos and cruisers
+          const spreadWidth = atk.bullets > 1 ? 2.5 : 0;
+          const spread = (i - (atk.bullets - 1) / 2) * (spreadWidth / Math.max(1, atk.bullets - 1));
           const spawnPos = this.position.clone();
           spawnPos.x += spread;
           
           missileManager.spawnMissile(
             spawnPos,
             dir.clone(),
-            atk.speed || 5,
+            atk.speed || 5, // atk.speed for missile is usually 5
             20 // Missile HP
           );
         }
