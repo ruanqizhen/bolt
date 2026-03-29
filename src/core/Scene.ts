@@ -183,6 +183,7 @@ export class GameScene {
         uColorDeep: { value: new THREE.Color(0x0a2a4a) },
         uColorShallow: { value: new THREE.Color(0x1a5a8a) },
         uGridColor: { value: new THREE.Color(0x4aaaff) },
+        uTexture: { value: null as THREE.Texture | null },
       },
       vertexShader: `
         uniform float uTime;
@@ -208,14 +209,21 @@ export class GameScene {
         uniform vec3 uColorDeep;
         uniform vec3 uColorShallow;
         uniform vec3 uGridColor;
+        uniform sampler2D uTexture;
 
         varying vec2 vUv;
         varying float vElevation;
 
         void main() {
-          // Mix colors based on elevation
+          // Sample the ocean texture
+          vec3 texColor = texture2D(uTexture, vUv).rgb;
+          
+          // Mix colors based on elevation for depth effect
           float mixStrength = (vElevation + 0.8) * 0.5;
-          vec3 color = mix(uColorDeep, uColorShallow, mixStrength);
+          vec3 depthColor = mix(uColorDeep, uColorShallow, mixStrength);
+          
+          // Combine texture with procedural depth highlights
+          vec3 color = mix(texColor, depthColor, 0.45);
 
           // Add a subtle tech grid over the ocean
           float gridX = step(0.98, fract(vUv.x * 40.0));
@@ -248,6 +256,15 @@ export class GameScene {
   public setEnvironment(type: 'land' | 'ocean', levelNum: number = 1): void {
     this.currentEnv = type;
     if (type === 'ocean') {
+      const tm = TextureManager.getInstance();
+      const bgPath = `bg/bg${levelNum}.png`;
+      const tex = tm.get(bgPath);
+      if (tex) {
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(4, 4);
+        this.oceanMat.uniforms.uTexture.value = tex;
+      }
       this.groundPlane.material = this.oceanMat;
       // Hide procedural background for ocean
       if (this.bgGenerator) {
@@ -353,6 +370,12 @@ export class GameScene {
       }
     } else {
       this.oceanMat.uniforms.uTime.value = this.time;
+      
+      // Also scroll the ocean texture if it exists
+      const tex = this.oceanMat.uniforms.uTexture.value as THREE.Texture;
+      if (tex) {
+        tex.offset.y += this.groundSpeed * deltaTime * 0.05;
+      }
     }
 
     // Cloud scrolling (half speed of ground, adjusted for 2x2 repeat vs 4x4 ground)
