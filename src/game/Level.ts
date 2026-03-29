@@ -420,8 +420,6 @@ export class Level {
       lightColor = 0xff0000;
     }
     
-    console.log(`[Explosion] Enemy killed: ${enemy.config.id}, size=${size}, tier=${explosionTier}`);
-    
     // Create scaled explosion effects
     this.particles.emitExplosion(explosionTier, enemy.position.x, 0.5, enemy.position.z);
     this.gameScene.spawnExplosionLight(enemy.position.clone(), lightColor, lightIntensity);

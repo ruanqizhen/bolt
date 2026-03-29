@@ -41,7 +41,6 @@ export class TextureManager {
 
     const promises = paths.map((p) => this.loadTexture(p));
     await Promise.all(promises);
-    console.log(`[TextureManager] Loaded ${this.cache.size} textures`);
   }
 
   private loadTexture(relativePath: string): Promise<THREE.Texture> {

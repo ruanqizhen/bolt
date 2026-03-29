@@ -266,7 +266,6 @@ export class ParticleSystem {
    */
   emitExplosion(tier: 'tiny' | 'small' | 'medium' | 'large' | 'massive', x: number, y: number, z: number): void {
     const config = EXPLOSION_TIERS[tier];
-    console.log(`[Particles] emitExplosion: ${tier}, count=${config.particleCount}, pos=(${x},${y},${z})`);
 
     // Main explosion particles
     let spawned = 0;
@@ -294,8 +293,7 @@ export class ParticleSystem {
       p.rotationSpeed = (Math.random() - 0.5) * 10;
       p.active = true;
     }
-    console.log(`[Particles] Spawned ${spawned} explosion particles`);
-
+    
     // Shockwave rings
     for (let s = 0; s < config.shockwaveCount; s++) {
       setTimeout(() => {
