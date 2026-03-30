@@ -62,9 +62,9 @@ html, body {
 .hud-score {
   color: #fff;
   font-family: 'Rajdhani', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
   text-shadow:
     0 0 10px rgba(0, 200, 255, 0.8),
     0 0 20px rgba(0, 200, 255, 0.4);
@@ -482,7 +482,7 @@ html, body {
 /* ===== Mobile Controls ===== */
 @media (max-width: 768px) {
   .hud-top { padding: 8px 10px; gap: 8px; }
-  .hud-score { font-size: 14px; padding: 4px 8px; }
+  .hud-score { font-size: 12px; padding: 3px 7px; }
   .hud-lives, .hud-bombs, .hud-weapon { font-size: 12px; padding: 3px 7px; }
   .hud-right { gap: 6px; }
   .hud-boss-hp { top: 50px; width: 50%; max-width: 280px; }

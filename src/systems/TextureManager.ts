@@ -32,9 +32,6 @@ export class TextureManager {
       'enemies/drone_carrier.png', 'enemies/alien_core.png', 'enemies/fairy.png', 'enemies/ufo.png',
       // Bosses
       'bosses/tank_boss.png', 'bosses/bomber_boss.png', 'bosses/carrier_boss.png',
-      // Drops
-      'drops/powerup_red.png', 'drops/powerup_blue.png', 'drops/powerup_purple.png',
-      'drops/bomb.png', 'drops/medal.png',
       // Backgrounds
       'bg/bg1.png', 'bg/bg2.png', 'bg/bg3.png',
     ];
@@ -122,12 +119,6 @@ export class TextureManager {
     return this.get(`bosses/${bossId}.png`);
   }
 
-  /**
-   * Get drop texture by drop type.
-   */
-  getDrop(dropType: string): THREE.Texture {
-    return this.get(`drops/${dropType}.png`);
-  }
 
   /**
    * Create a SpriteMaterial from a texture path.
