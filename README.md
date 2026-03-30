@@ -29,7 +29,7 @@
 - 🛩️ **次世代 2.5D 视觉体验**：采用 50° FOV 和 15° 倾角的透视相机，结合多层视差滚动（云层、地面、海浪），营造极具深度的战场空间感。
 - 💥 **硬核弹幕 (Danmaku) 美学**：内置强大的 Pattern System，支持生成波浪、花形、旋转环形、追踪等数十种复杂弹幕，同屏 600+ 子弹无延迟。
 - 🎬 **电影级后处理特效 (Post-Processing)**：基于 `UnrealBloomPass` 实现的霓虹级激光辉光，配合真实物理爆炸碎片与屏幕震动 (Screen Shake)。
-- 🎼 **3D 动态音频系统**：基于 Web Audio API 构建的空间音效，引擎轰鸣、子弹擦弹音效与重金属 Boss 战 BGM 无缝交织。
+- 🎼 **程序化音频系统 (Procedural Audio)**：基于 Web Audio API 纯代码合成的 8-bit/Chiptune 风格复古音效与 BGM，包含基于波形振荡器生成的爆炸、射击与动感的 Boss 战音乐。
 - 📱 **PWA 与跨端支持**：无需下载，即开即玩。完美适配键盘、手柄，并内置移动端虚拟摇杆与自适应触控方案。
 
 
@@ -67,32 +67,32 @@
 - **构建与热更新**: [Vite](https://vitejs.dev/)
 - **开发语言**: [TypeScript](https://www.typescriptlang.org/) (严格类型，保障复杂物理运算的稳定性)
 - **状态与逻辑**: 自定义轻量级 ECS (Entity-Component-System) 架构思想
-- **模型与动画**: GLTF/GLB 格式，使用 Blender 预渲染烘焙
+- **模型与动画**: 2D Sprite 贴图素材，通过 Three.js 的 PlaneGeometry 透视渲染实现复古风的 2.5D 视觉体验
 
 ### 📂 核心目录结构
 
 ```text
-bolt-reborn/
-├── public/                 # 静态挂载资源 (网站 Icon, manifest.json)
+bolt/
+├── public/                 # 静态挂载资源 (网站 Icon, Texture 图片资源)
+│   └── assets/             # 游内各类型图片的 2D Sprite 素材
 ├── src/
-│   ├── assets/             # 游戏内资源
-│   │   ├── models/         # 敌机、自机、Boss 的 .glb 模型
-│   │   ├── textures/       # 滚动的地面、云层、粒子贴图
-│   │   └── audio/          # BGM 与 3D 空间音效
+│   ├── assets/
+│   │   └── configs/        # 数据驱动层 (关卡与敌人生成的 JSON 配置)
 │   ├── core/               # 引擎核心层
-│   │   ├── Engine.ts       # Main Loop (requestAnimationFrame)
+│   │   ├── GameLoop.ts     # 游戏主循环控制
 │   │   ├── Renderer.ts     # WebGLRenderer 配置与 Post-Processing 管线
-│   │   └── Camera.ts       # 2.5D 透视相机逻辑与震动算法
-│   ├── entities/           # 游戏实体
+│   │   └── Camera.ts       # 2.5D 透视相机逻辑
+│   ├── game/               # 游戏实体与玩法逻辑
 │   │   ├── Player.ts       # 玩家控制与状态机
 │   │   ├── Enemy.ts        # 敌机基类 (侦察机, 战斗机, 重装坦克)
-│   │   └── Boss.ts         # Boss 多阶段状态机
+│   │   ├── Boss.ts         # Boss 多阶段状态机
+│   │   ├── Bullet.ts       # 弹幕与弹道逻辑
+│   │   └── weapons/        # 多种武器的开火逻辑
 │   ├── systems/            # 核心业务系统
-│   │   ├── BulletManager.ts# Pattern System (弹幕工厂)
-│   │   ├── Collision.ts    # 基于 Quadtree 的球体/射线碰撞检测
-│   │   └── ObjectPool.ts   # 泛型对象池 (极度重要，防止 GC)
-│   ├── config/             # 数据驱动层 (JSON配置)
-│   │   └── Level_1.json    # 基于时间轴的关卡生成脚本
+│   │   ├── Audio.ts        # 基于 Web Audio API 的程序化合成音效
+│   │   ├── Collision.ts    # 基于 Quadtree 的碰撞检测
+│   │   ├── Input.ts        # 统一的输入源管理
+│   │   └── Pool.ts         # 泛型对象池 (极度重要，防止 GC)
 │   └── main.ts             # 游戏入口点
 ├── index.html              # 宿主 HTML
 └── package.json            
