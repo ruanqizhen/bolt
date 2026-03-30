@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="description" content="Bolt (雷电) — 2.5D 现代化弹幕射击游戏" />
+  <meta name="description" content="Bolt (雷电)" />
   <title>雷电 Bolt</title>
   <link rel="stylesheet" href="/src/styles/index.css" />
 </head>
+
 <body>
   <div id="game-container">
     <canvas id="game-canvas"></canvas>
@@ -34,7 +36,6 @@
     <div id="screen-title" class="overlay-screen">
       <div class="title-content">
         <h1 class="game-title">BOLT<span class="title-cn">雷电</span></h1>
-        <div class="title-subtitle">2.5D 弹幕射击游戏</div>
         <button id="btn-start" class="menu-btn pulse">开始游戏</button>
         <div class="title-controls">
           <div>WASD — 移动 &nbsp;&nbsp; Shift — 慢速</div>
@@ -42,6 +43,9 @@
           <div>1/2/3 — 切换武器</div>
         </div>
         <div id="title-highscore" class="title-highscore"></div>
+        <a href="https://qizhen.xyz/" target="_blank" class="home-link">
+          <span>🌐</span> 访问我的个人主页
+        </a>
       </div>
     </div>
 
@@ -80,4 +84,5 @@
   </div>
   <script type="module" src="/src/main.ts"></script>
 </body>
+
 </html>

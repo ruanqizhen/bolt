@@ -493,3 +493,30 @@ html, body {
   .screen-heading { font-size: 32px; }
   .menu-btn { width: 200px; font-size: 16px; }
 }
+
+/* ===== Home Link ===== */
+.home-link {
+  display: inline-block;
+  margin-top: 24px;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid transparent;
+  pointer-events: auto;
+}
+
+.home-link:hover {
+  color: rgba(0, 200, 255, 1);
+  border-bottom-color: rgba(0, 200, 255, 0.5);
+  transform: translateY(-2px);
+  text-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+}
+
+.home-link span {
+  margin-right: 6px;
+  font-size: 16px;
+}
