@@ -131,10 +131,12 @@ export class Enemy {
   tryFire(targetPos: THREE.Vector3, bulletManager: BulletManager, missileManager: MissileManager, deltaTime: number): void {
     if (this.config.attack.type === 'none') return;
 
+    // Always update fire timer even if off-screen to pre-warm weapons
+    this.fireTimer -= deltaTime;
+
     // Only fire if enemy is in visible game area
     if (!this.canFire()) return;
 
-    this.fireTimer -= deltaTime;
     if (this.fireTimer > 0) return;
     this.fireTimer = this.config.attack.cooldown;
 

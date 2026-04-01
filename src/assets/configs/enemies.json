@@ -98,7 +98,7 @@
   {
     "id": "laser_tower", "tier": "turret", "name": "Laser Tower",
     "hp": 80, "speed": 0, "score": 500,
-    "attack": { "type": "straight", "cooldown": 3.5, "bullets": 1, "speed": 18 },
+    "attack": { "type": "straight", "cooldown": 2.5, "bullets": 1, "speed": 18 },
     "ai": "stationary",
     "drop": { "medal": 0.3, "powerup": 0.2, "bomb": 0.05 },
     "size": 0.55, "color": "0x4455aa"
@@ -114,7 +114,7 @@
   {
     "id": "missile_silo", "tier": "turret", "name": "Missile Silo",
     "hp": 100, "speed": 0, "score": 600,
-    "attack": { "type": "missile", "cooldown": 4.0, "bullets": 2, "speed": 4, "steer": 0.12 },
+    "attack": { "type": "missile", "cooldown": 2.8, "bullets": 2, "speed": 4, "steer": 0.12 },
     "ai": "stationary",
     "drop": { "medal": 0.3, "powerup": 0.2, "bomb": 0.08 },
     "size": 0.7, "color": "0x445544"
@@ -146,7 +146,7 @@
   {
     "id": "drone_carrier", "tier": "elite", "name": "Giant Drone Carrier",
     "hp": 300, "speed": 1.5, "score": 3000,
-    "attack": { "type": "radial", "cooldown": 3.0, "bullets": 6, "speed": 4 },
+    "attack": { "type": "radial", "cooldown": 1.8, "bullets": 6, "speed": 4 },
     "ai": "patrol",
     "drop": { "medal": 0.5, "powerup": 0.3, "bomb": 0.1 },
     "size": 1.2, "color": "0x664444"
@@ -154,7 +154,7 @@
   {
     "id": "alien_core", "tier": "elite", "name": "Alien Parasite Core",
     "hp": 400, "speed": 1, "score": 5000,
-    "attack": { "type": "flower", "cooldown": 6.0, "bullets": 16, "speed": 3, "rings": 5 },
+    "attack": { "type": "flower", "cooldown": 2.5, "bullets": 16, "speed": 3, "rings": 5 },
     "ai": "sine",
     "drop": { "medal": 0.6, "powerup": 0.4, "bomb": 0.15 },
     "size": 1.0, "color": "0xaa33aa"
