@@ -67,9 +67,13 @@ export class Level {
   public bossDefeated = false;
   private bossDefeatTimer = 0;
 
-  // Power-up rain timer
   private powerupRainTimer = 0;
   private powerupRainDuration = 0;
+
+  // Random ambush state
+  private ambientTimer = 10; // Initial delay
+  private static readonly AMBUSH_MIN_DELAY = 12;
+  private static readonly AMBUSH_MAX_DELAY = 18;
 
   constructor(
     private scene: THREE.Scene,
@@ -105,7 +109,17 @@ export class Level {
    * Load level data and reset state for a new level.
    */
   loadLevel(levelData: LevelEvent[]): void {
-    this.events = levelData;
+    // Clone and Jitter event times for variety (±1s)
+    this.events = levelData.map(ev => {
+      const isBossSeq = ev.event === 'boss_warning' || ev.boss || ev.event === 'clear';
+      return {
+        ...ev,
+        time: isBossSeq ? ev.time : Math.max(0.1, ev.time + (Math.random() - 0.5) * 2.0)
+      };
+    });
+    // Resort by new times to keep the while loop working
+    this.events.sort((a, b) => a.time - b.time);
+
     this.eventIndex = 0;
     this.elapsed = 0;
     this.isComplete = false;
@@ -113,6 +127,7 @@ export class Level {
     this.bossDefeatTimer = 0;
     this.bossWarningActive = false;
     this.powerupRainDuration = 0;
+    this.ambientTimer = 10;
 
     // Clear enemies
     for (const enemy of this.enemies) {
@@ -165,6 +180,15 @@ export class Level {
       this.bossWarningTimer -= deltaTime;
       if (this.bossWarningTimer <= 0) {
         this.bossWarningActive = false;
+      }
+    }
+
+    // --- Ambient random ambushes ---
+    if (!this.bossWarningActive && !this.isBossActive() && !this.isComplete) {
+      this.ambientTimer -= deltaTime;
+      if (this.ambientTimer <= 0) {
+        this.triggerRandomAmbush();
+        this.ambientTimer = Level.AMBUSH_MIN_DELAY + Math.random() * (Level.AMBUSH_MAX_DELAY - Level.AMBUSH_MIN_DELAY);
       }
     }
 
@@ -381,10 +405,27 @@ export class Level {
   }
 
   private spawnEnemyWave(event: LevelEvent): void {
-    const config = this.configMap.get(event.spawn!);
+    const originalType = event.spawn!;
+    let enemyType = originalType;
+    
+    // Enemy Variety: 20% chance to swap with same tier (except for rare units)
+    if (Math.random() < 0.2 && originalType !== 'fairy' && originalType !== 'ufo') {
+      const config = this.configMap.get(originalType);
+      if (config) {
+        const othersInTier = Array.from(this.configMap.values()).filter(c => 
+          c.tier === config.tier && c.id !== originalType && c.id !== 'fairy' && c.id !== 'ufo'
+        );
+        if (othersInTier.length > 0) {
+          enemyType = othersInTier[Math.floor(Math.random() * othersInTier.length)].id;
+        }
+      }
+    }
+
+    const config = this.configMap.get(enemyType);
     if (!config) return;
 
     const count = event.count || 1;
+    const globalXOffset = (Math.random() - 0.5) * 2; // Slight group offset for unpredictability
 
     for (let i = 0; i < count; i++) {
       const enemy = this.enemies.find(e => !e.alive);
@@ -395,11 +436,11 @@ export class Level {
       // Positioning
       let x: number;
       if (event.pattern === 'line') {
-        const baseX = event.x ?? 0;
+        const baseX = (event.x ?? 0) + globalXOffset;
         const spacing = event.spacing ?? 2;
         x = baseX + (i - (count - 1) / 2) * spacing;
       } else if (event.pattern === 'fixed') {
-        x = event.x ?? 0;
+        x = (event.x ?? 0) + (Math.random() - 0.5) * 0.5;
       } else {
         x = (Math.random() - 0.5) * 12;
       }
@@ -431,6 +472,25 @@ export class Level {
         return;
     }
     this.scene.add(this.currentBoss.mesh);
+  }
+
+  /** Trigger a sudden ambush of 1-3 scouts or 1 fighter */
+  private triggerRandomAmbush(): void {
+    const tiers = ['scout', 'scout', 'scout', 'fighter'];
+    const chosenTier = tiers[Math.floor(Math.random() * tiers.length)];
+    const options = Array.from(this.configMap.values()).filter(c => c.tier === chosenTier);
+    if (options.length === 0) return;
+    
+    const config = options[Math.floor(Math.random() * options.length)];
+    const count = chosenTier === 'scout' ? 1 + Math.floor(Math.random() * 2) : 1;
+    
+    this.spawnEnemyWave({
+      time: this.elapsed,
+      spawn: config.id,
+      count: count,
+      pattern: 'random',
+      aggressive: true // Ambushes are always aggressive
+    });
   }
 
   private onEnemyKilled(enemy: Enemy, player: Player): void {
