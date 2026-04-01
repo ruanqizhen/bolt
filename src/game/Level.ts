@@ -64,6 +64,7 @@ export class Level {
   // State
   public isComplete = false;
   public bossDefeated = false;
+  private bossDefeatTimer = 0;
 
   // Power-up rain timer
   private powerupRainTimer = 0;
@@ -108,6 +109,7 @@ export class Level {
     this.elapsed = 0;
     this.isComplete = false;
     this.bossDefeated = false;
+    this.bossDefeatTimer = 0;
     this.bossWarningActive = false;
     this.powerupRainDuration = 0;
 
@@ -201,7 +203,14 @@ export class Level {
         }
       }
       if (this.currentBoss?.alive && this.currentBoss.active) {
-        this.currentBoss.takeDamage(bombDamage);
+        if (this.currentBoss.takeDamage(bombDamage)) {
+          // Boss killed by bomb!
+          player.score += this.currentBoss.score;
+          this.bossDefeated = true;
+          if (this.audio) {
+            this.audio.playSfx('explosion_boss', { x: this.currentBoss.position.x, z: this.currentBoss.position.z });
+          }
+        }
       }
     }
 
@@ -331,9 +340,12 @@ export class Level {
       this.particles.emit('spark', player.position.x, 0.5, player.position.z);
     }
 
-    // --- Level complete ---
+    // --- Level complete (with delay for explosion animation) ---
     if (this.bossDefeated && !this.isComplete) {
-      this.isComplete = true;
+      this.bossDefeatTimer += deltaTime;
+      if (this.bossDefeatTimer >= 2.0) {
+        this.isComplete = true;
+      }
     }
   }
 
