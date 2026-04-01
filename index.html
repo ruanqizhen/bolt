@@ -48,6 +48,7 @@
       <div class="title-content">
         <h1 class="game-title">BOLT<span class="title-cn">雷电</span></h1>
         <button id="btn-start" class="menu-btn pulse">开始游戏</button>
+        <button id="btn-show-help" class="menu-btn secondary">游戏帮助</button>
         <div class="title-controls">
           <div>WASD — 移动 &nbsp;&nbsp; Shift — 慢速</div>
           <div>J — 射击 &nbsp;&nbsp; K — 炸弹</div>
@@ -59,6 +60,46 @@
         <a href="https://qizhen.xyz/" target="_blank" class="home-link">
           <span>🌐</span> 访问我的个人主页
         </a>
+      </div>
+    </div>
+
+    <!-- Help Screen -->
+    <div id="screen-help" class="overlay-screen" style="display:none;">
+      <div class="overlay-content help-content">
+        <h2 class="screen-heading gold-glow">游戏帮助</h2>
+        
+        <div class="help-scroll-area">
+          <div class="help-section">
+            <h3>🎮 操作说明</h3>
+            <ul class="help-list">
+              <li><strong>WASD / 方向键</strong>：控制战机移动</li>
+              <li><strong>J 键</strong>：发射主武器</li>
+              <li><strong>K 键</strong>：释放威力巨大的炸弹</li>
+              <li><strong>Shift 键</strong>：进入低速精确移动模式</li>
+              <li><strong>1 / 2 / 3 键</strong>：快速切换已获得的武器</li>
+            </ul>
+          </div>
+
+          <div class="help-section">
+            <h3>🚀 武器系统</h3>
+            <ul class="help-list">
+              <li><span class="color-red">●</span> <strong>火神炮 (Vulcan)</strong>：红色。火力范围广，升级后可多向射击。</li>
+              <li><span class="color-blue">●</span> <strong>激光 (Laser)</strong>：蓝色。穿透力极强，对首领有奇效。</li>
+              <li><span class="color-purple">●</span> <strong>诱导激光 (Homing)</strong>：紫色。自动跟踪屏幕上的敌机。</li>
+            </ul>
+          </div>
+
+          <div class="help-section">
+            <h3>💰 进阶技巧</h3>
+            <ul class="help-list">
+              <li><strong>勋章 (Medals)</strong>：击落特定敌机掉落。连续拾取可大幅提升得分倍率！</li>
+              <li><strong>武器升级</strong>：拾取同色道具可提升武器等级，最高为 4 级。</li>
+              <li><strong>残机与炸弹</strong>：拾取对应的 1UP 和 B 道具可补充资源。</li>
+            </ul>
+          </div>
+        </div>
+
+        <button id="btn-help-back" class="menu-btn">返回标题</button>
       </div>
     </div>
 

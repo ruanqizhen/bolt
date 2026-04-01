@@ -287,6 +287,87 @@ html, body {
   text-shadow: 0 0 10px rgba(255, 200, 0, 0.5);
 }
 
+/* ===== Help Screen Specifics ===== */
+.help-content {
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.help-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 150, 255, 0.3) transparent;
+}
+
+.help-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.help-scroll-area::-webkit-scrollbar-thumb {
+  background: rgba(0, 150, 255, 0.3);
+  border-radius: 3px;
+}
+
+.help-section {
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.help-section h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  color: #00d2ff;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+  border-left: 3px solid #00d2ff;
+  padding-left: 10px;
+}
+
+.help-list {
+  list-style: none;
+  padding: 0;
+}
+
+.help-list li {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+  line-height: 1.5;
+  padding-left: 14px;
+  position: relative;
+}
+
+.help-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 4px;
+  height: 4px;
+  background: #00d2ff;
+  border-radius: 50%;
+  box-shadow: 0 0 5px #00d2ff;
+}
+
+.help-list li strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.color-red { color: #ff5555; text-shadow: 0 0 5px #ff5555; }
+.color-blue { color: #3366ff; text-shadow: 0 0 5px #3366ff; }
+.color-purple { color: #cc33ff; text-shadow: 0 0 5px #cc33ff; }
+
 /* ===== Menu Buttons ===== */
 .menu-btn {
   display: block;

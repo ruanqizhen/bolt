@@ -55,6 +55,7 @@ class Game {
     levelclear: null as HTMLElement | null,
     victory: null as HTMLElement | null,
     hud: null as HTMLElement | null,
+    help: null as HTMLElement | null,
   };
 
   constructor() {
@@ -88,6 +89,7 @@ class Game {
     this.screens.levelclear = document.getElementById('screen-levelclear');
     this.screens.victory = document.getElementById('screen-victory');
     this.screens.hud = document.getElementById('hud');
+    this.screens.help = document.getElementById('screen-help');
 
     // Init game objects
     this.initGameSystems();
@@ -182,6 +184,14 @@ class Game {
 
     addResponsiveListener('btn-start', () => {
       this.startGame();
+    });
+
+    addResponsiveListener('btn-show-help', () => {
+      this.showScreen('help');
+    });
+
+    addResponsiveListener('btn-help-back', () => {
+      this.showScreen('title');
     });
 
     addResponsiveListener('btn-continue', () => {
@@ -284,10 +294,14 @@ class Game {
     if (this.screens.levelclear) this.screens.levelclear.style.display = 'none';
     if (this.screens.victory) this.screens.victory.style.display = 'none';
     if (this.screens.hud) this.screens.hud.style.display = 'none';
+    if (this.screens.help) this.screens.help.style.display = 'none';
 
     switch (screen) {
       case 'title':
         if (this.screens.title) this.screens.title.style.display = 'flex';
+        break;
+      case 'help':
+        if (this.screens.help) this.screens.help.style.display = 'flex';
         break;
       case 'playing':
         if (this.screens.hud) this.screens.hud.style.display = 'block';

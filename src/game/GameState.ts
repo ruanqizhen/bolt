@@ -1,7 +1,7 @@
 /**
  * GameState — Manages overall game state transitions.
  */
-export type GameScreen = 'title' | 'playing' | 'game_over' | 'level_clear' | 'victory';
+export type GameScreen = 'title' | 'playing' | 'game_over' | 'level_clear' | 'victory' | 'help';
 
 export class GameState {
   public screen: GameScreen = 'title';
