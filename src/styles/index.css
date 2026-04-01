@@ -267,15 +267,6 @@ html, body {
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
-.title-controls {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.35);
-  line-height: 2;
-  margin-top: 24px;
-  letter-spacing: 1px;
-}
 
 .title-highscore {
   font-family: 'Rajdhani', sans-serif;
