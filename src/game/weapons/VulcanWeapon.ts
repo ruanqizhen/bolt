@@ -11,20 +11,19 @@ export class VulcanWeapon implements Weapon {
   level = 1;
 
   private cooldown = 0;
-  private static readonly FIRE_RATE = 0.08; // seconds between shots
+  private static readonly FIRE_RATE = 0.10; // seconds between shots (increased by 30%)
   private static readonly BULLET_SPEED = 25;
   private static readonly DAMAGE = 10;
 
-  /** Number of bullets per shot at each level */
-  private static readonly BULLETS_PER_LEVEL = [2, 4, 6, 8, 10, 12, 14, 16];
+
 
   fire(playerPos: THREE.Vector3, bulletManager: BulletManager, _deltaTime: number): boolean {
     if (this.cooldown > 0) return false;
 
     this.cooldown = VulcanWeapon.FIRE_RATE;
 
-    const count = VulcanWeapon.BULLETS_PER_LEVEL[Math.min(this.level - 1, 7)];
-    const spreadAngle = Math.min(15 + this.level * 5, 60); // degrees
+    const count = this.level * 2;
+    const spreadAngle = (count - 1) * 10; // Fixed 10 degree gap between bullets
     const halfSpread = THREE.MathUtils.degToRad(spreadAngle / 2);
 
     for (let i = 0; i < count; i++) {
