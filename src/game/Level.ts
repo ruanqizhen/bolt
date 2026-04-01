@@ -31,6 +31,7 @@ interface LevelEvent {
   event?: string;
   duration?: number;
   boss?: string;
+  aggressive?: boolean;
 }
 
 /**
@@ -406,6 +407,11 @@ export class Level {
       enemy.position.set(x, 0, -15 - i * 1.5);
       enemy.startX = x;
       enemy.spawnTime = this.elapsed;
+
+      if (event.aggressive) {
+        // Force fire almost immediately after entering
+        enemy.fireTimer = Math.min(0.1, config.attack.cooldown * 0.1);
+      }
     }
   }
 
