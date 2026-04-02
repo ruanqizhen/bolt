@@ -101,6 +101,12 @@ class Game {
     // Key bindings
     this.setupKeyBindings();
 
+    // Resize handling for post-processing
+    window.addEventListener('resize', () => {
+      const { width, height } = this.renderer.getGamePixelSize();
+      this.postProcessor.resize(width, height);
+    });
+
     // Game loop (always runs for background rendering)
     this.gameLoop = new GameLoop(
       (dt) => this.update(dt),
