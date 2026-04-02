@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Poolable } from '../systems/Pool';
+import { GameTimer } from '../systems/GameTimer';
 import { ParticleSystem } from '../systems/Particles';
 
 /**
@@ -156,9 +157,9 @@ export class EnemyMissile implements Poolable {
     this.hp -= amount;
     // Visually flash on hit?
     (this.bodyMesh.material as THREE.MeshPhongMaterial).emissive.set(0xffffff);
-    setTimeout(() => {
+    GameTimer.getInstance().schedule(0.05, () => {
       if (this.active) (this.bodyMesh.material as THREE.MeshPhongMaterial).emissive.set(0x333333);
-    }, 50);
+    });
 
     if (this.hp <= 0) {
       this.active = false;

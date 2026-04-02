@@ -6,6 +6,7 @@ import { Input } from './systems/Input';
 import { ParticleSystem } from './systems/Particles';
 import { CollisionSystem } from './systems/Collision';
 import { AudioManager } from './systems/Audio';
+import { GameTimer } from './systems/GameTimer';
 import { TextureManager } from './systems/TextureManager';
 import { PostProcessor } from './core/PostProcessor';
 import { Player } from './game/Player';
@@ -338,6 +339,11 @@ class Game {
   private update(deltaTime: number): void {
     // Always update scene for background animation
     this.gameScene.update(deltaTime);
+
+    // Always tick game timers when playing
+    if (this.state.screen === 'playing') {
+      GameTimer.getInstance().update(deltaTime);
+    }
 
     if (this.state.screen !== 'playing') return;
 

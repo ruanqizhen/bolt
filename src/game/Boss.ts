@@ -3,6 +3,7 @@ import { BulletPatterns } from './BulletPatterns';
 import { BulletManager } from './Bullet';
 import { ParticleSystem } from '../systems/Particles';
 import { GameScene } from '../core/Scene';
+import { GameTimer } from '../systems/GameTimer';
 
 /**
  * BossPhase — A single phase of a boss fight.
@@ -126,7 +127,7 @@ export class Boss {
         const mat = child.material as THREE.MeshStandardMaterial;
         if (mat.emissiveIntensity !== undefined) {
           mat.emissiveIntensity = 1.0;
-          setTimeout(() => { mat.emissiveIntensity = 0.2; }, 50);
+          GameTimer.getInstance().schedule(0.05, () => { mat.emissiveIntensity = 0.2; });
         }
       }
     });
@@ -142,24 +143,22 @@ export class Boss {
     this.alive = false;
     this.active = false;
 
-    // Massive explosion sequence
-    for (let i = 0; i < 10; i++) {
-      const delay = i * 150;
-      setTimeout(() => {
-        const ox = (Math.random() - 0.5) * 4;
-        const oz = (Math.random() - 0.5) * 4;
-        this.particles.emit('explosion', this.position.x + ox, 0.5, this.position.z + oz);
-        this.particles.emit('smoke', this.position.x + ox, 0.3, this.position.z + oz);
-        this.gameScene.spawnExplosionLight(
-          new THREE.Vector3(this.position.x + ox, 0.5, this.position.z + oz),
-          0xff6600, 4
-        );
-      }, delay);
-    }
+    // Massive explosion sequence (game-loop driven)
+    const timer = GameTimer.getInstance();
+    timer.scheduleSequence(10, 0.15, () => {
+      const ox = (Math.random() - 0.5) * 4;
+      const oz = (Math.random() - 0.5) * 4;
+      this.particles.emit('explosion', this.position.x + ox, 0.5, this.position.z + oz);
+      this.particles.emit('smoke', this.position.x + ox, 0.3, this.position.z + oz);
+      this.gameScene.spawnExplosionLight(
+        new THREE.Vector3(this.position.x + ox, 0.5, this.position.z + oz),
+        0xff6600, 4
+      );
+    });
 
-    setTimeout(() => {
+    timer.schedule(1.5, () => {
       this.mesh.visible = false;
-    }, 1500);
+    });
   }
 
   /** Get HP as percentage (0-1) */

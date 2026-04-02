@@ -17,6 +17,7 @@ import { WeaponFactory } from './weapons/WeaponFactory';
 import { CollisionSystem, EnemyHitbox } from '../systems/Collision';
 import { BombSystem } from './weapons/BombSystem';
 import { AudioManager } from '../systems/Audio';
+import { GameTimer } from '../systems/GameTimer';
 
 import enemyConfigs from '../assets/configs/enemies.json';
 
@@ -146,6 +147,9 @@ export class Level {
     this.bulletManager.clearAll();
     this.missileManager.clearAll();
     this.particles.clear();
+
+    // Clear all pending game-loop timers from previous level
+    GameTimer.getInstance().clear();
   }
 
   update(

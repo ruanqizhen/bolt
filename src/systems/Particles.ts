@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GameTimer } from './GameTimer';
 
 /**
  * Create a circular particle texture programmatically.
@@ -294,11 +295,11 @@ export class ParticleSystem {
       p.active = true;
     }
     
-    // Shockwave rings
+    // Shockwave rings (game-loop driven)
     for (let s = 0; s < config.shockwaveCount; s++) {
-      setTimeout(() => {
+      GameTimer.getInstance().schedule(s * 0.08, () => {
         this.emit('shockwave', x, y, z);
-      }, s * 80);
+      });
     }
 
     // Debris

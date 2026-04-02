@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { BulletManager } from './Bullet';
 import { MissileManager } from './MissileManager';
 import { TextureManager } from '../systems/TextureManager';
+import { GameTimer } from '../systems/GameTimer';
 
 /**
  * EnemyConfig — Data-driven enemy definition loaded from JSON.
@@ -158,13 +159,13 @@ export class Enemy {
         for (let i = 0; i < atk.bullets; i++) {
           const delay = i * 0.08;
           const bSpeed = atk.speed * (1 - i * 0.05);
-          setTimeout(() => {
+          GameTimer.getInstance().schedule(delay, () => {
             if (!this.alive) return;
             bulletManager.spawnEnemyBullet(
               this.position.x, this.position.z,
               dir.x * bSpeed, dir.z * bSpeed
             );
-          }, delay * 1000);
+          });
         }
         break;
 
