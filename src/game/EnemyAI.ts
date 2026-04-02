@@ -12,8 +12,9 @@ export class EnemyAI {
 
   /**
    * Update all enemy AI. Call every frame; internally throttles to 10 FPS.
+   * @param difficultySpeedMult  Multiplier from DifficultyManager (1.0 = normal).
    */
-  update(enemies: Enemy[], playerPos: THREE.Vector3, deltaTime: number): void {
+  update(enemies: Enemy[], playerPos: THREE.Vector3, deltaTime: number, difficultySpeedMult = 1.0): void {
     this.throttleAccum += deltaTime;
     if (this.throttleAccum < EnemyAI.AI_INTERVAL) return;
 
@@ -28,50 +29,50 @@ export class EnemyAI {
 
       switch (enemy.config.ai) {
         case 'linear':
-          this.updateLinear(enemy, dt);
+          this.updateLinear(enemy, dt, difficultySpeedMult);
           break;
         case 'sine':
-          this.updateSine(enemy, dt);
+          this.updateSine(enemy, dt, difficultySpeedMult);
           break;
         case 'chase':
-          this.updateChase(enemy, playerPos, dt);
+          this.updateChase(enemy, playerPos, dt, difficultySpeedMult);
           break;
         case 'patrol':
-          this.updatePatrol(enemy, dt);
+          this.updatePatrol(enemy, dt, difficultySpeedMult);
           break;
         case 'stationary':
           // Move down at scroll speed to appear fixed to the ground
           enemy.position.z += EnemyAI.SCROLL_SPEED * dt;
           break;
         case 'spawn_units':
-          this.updateLinear(enemy, dt * 0.5);
+          this.updateLinear(enemy, dt * 0.5, difficultySpeedMult);
           break;
       }
     }
   }
 
-  private updateLinear(enemy: Enemy, dt: number): void {
-    enemy.position.z += enemy.config.speed * dt;
+  private updateLinear(enemy: Enemy, dt: number, speedMult: number): void {
+    enemy.position.z += enemy.config.speed * speedMult * dt;
   }
 
-  private updateSine(enemy: Enemy, dt: number): void {
+  private updateSine(enemy: Enemy, dt: number, speedMult: number): void {
     enemy.aiTimer += dt;
-    enemy.position.z += enemy.config.speed * dt;
+    enemy.position.z += enemy.config.speed * speedMult * dt;
     enemy.position.x = enemy.startX + Math.sin(enemy.aiTimer * 2 + enemy.sineOffset) * 3;
   }
 
-  private updateChase(enemy: Enemy, playerPos: THREE.Vector3, dt: number): void {
+  private updateChase(enemy: Enemy, playerPos: THREE.Vector3, dt: number, speedMult: number): void {
     // Move down but also drift toward player X
-    enemy.position.z += enemy.config.speed * dt * 0.7;
+    enemy.position.z += enemy.config.speed * speedMult * dt * 0.7;
 
     const dx = playerPos.x - enemy.position.x;
-    const chase = Math.sign(dx) * Math.min(Math.abs(dx), enemy.config.speed * dt * 0.5);
+    const chase = Math.sign(dx) * Math.min(Math.abs(dx), enemy.config.speed * speedMult * dt * 0.5);
     enemy.position.x += chase;
   }
 
-  private updatePatrol(enemy: Enemy, dt: number): void {
+  private updatePatrol(enemy: Enemy, dt: number, speedMult: number): void {
     // Move down slowly while sweeping left-right
-    enemy.position.z += enemy.config.speed * dt * 0.3;
+    enemy.position.z += enemy.config.speed * speedMult * dt * 0.3;
     enemy.aiTimer += dt;
 
     // Sweep with longer period

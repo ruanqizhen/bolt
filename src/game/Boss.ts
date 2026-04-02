@@ -43,6 +43,9 @@ export class Boss {
   // Attack timers
   public timers: Map<string, number> = new Map();
 
+  /** Difficulty-driven interval multiplier (lower = faster attacks). Set externally by Level. */
+  public difficultyIntervalMult = 1.0;
+
   constructor(
     hp: number,
     score: number,
@@ -67,12 +70,13 @@ export class Boss {
 
   /**
    * Set a named timer. Returns true when the timer reaches 0.
+   * Cooldown is automatically scaled by difficultyIntervalMult.
    */
   timer(name: string, cooldown: number, dt: number): boolean {
     const current = this.timers.get(name) ?? 0;
     const next = current - dt;
     if (next <= 0) {
-      this.timers.set(name, cooldown);
+      this.timers.set(name, cooldown * this.difficultyIntervalMult);
       return true;
     }
     this.timers.set(name, next);

@@ -129,7 +129,7 @@ export class Enemy {
   /**
    * Try to fire at the given target position.
    */
-  tryFire(targetPos: THREE.Vector3, bulletManager: BulletManager, missileManager: MissileManager, deltaTime: number): void {
+  tryFire(targetPos: THREE.Vector3, bulletManager: BulletManager, missileManager: MissileManager, deltaTime: number, difficultySpeedMult = 1.0): void {
     if (this.config.attack.type === 'none') return;
 
     // Always update fire timer even if off-screen to pre-warm weapons
@@ -139,9 +139,11 @@ export class Enemy {
     if (!this.canFire()) return;
 
     if (this.fireTimer > 0) return;
-    this.fireTimer = this.config.attack.cooldown;
+    // Difficulty reduces cooldown (faster attacks)
+    this.fireTimer = this.config.attack.cooldown / difficultySpeedMult;
 
     const atk = this.config.attack;
+    const spd = atk.speed * difficultySpeedMult;
     const dir = new THREE.Vector3().subVectors(targetPos, this.position).normalize();
 
     switch (atk.type) {
@@ -150,7 +152,7 @@ export class Enemy {
           const spread = (i - (atk.bullets - 1) / 2) * 0.3;
           bulletManager.spawnEnemyBullet(
             this.position.x + spread, this.position.z,
-            dir.x * atk.speed, dir.z * atk.speed
+            dir.x * spd, dir.z * spd
           );
         }
         break;
@@ -158,7 +160,7 @@ export class Enemy {
       case 'burst':
         for (let i = 0; i < atk.bullets; i++) {
           const delay = i * 0.08;
-          const bSpeed = atk.speed * (1 - i * 0.05);
+          const bSpeed = spd * (1 - i * 0.05);
           GameTimer.getInstance().schedule(delay, () => {
             if (!this.alive) return;
             bulletManager.spawnEnemyBullet(
@@ -182,8 +184,8 @@ export class Enemy {
           const finalAngle = baseAngle + angle;
           bulletManager.spawnEnemyBullet(
             this.position.x, this.position.z,
-            Math.sin(finalAngle) * atk.speed,
-            Math.cos(finalAngle) * atk.speed
+            Math.sin(finalAngle) * spd,
+            Math.cos(finalAngle) * spd
           );
         }
         break;
@@ -194,8 +196,8 @@ export class Enemy {
           const angle = (Math.PI * 2 * i) / atk.bullets;
           bulletManager.spawnEnemyBullet(
             this.position.x, this.position.z,
-            Math.sin(angle) * atk.speed,
-            Math.cos(angle) * atk.speed
+            Math.sin(angle) * spd,
+            Math.cos(angle) * spd
           );
         }
         break;
@@ -206,8 +208,8 @@ export class Enemy {
           const angle = this.rotAngle + (Math.PI * 2 * i) / atk.bullets;
           bulletManager.spawnEnemyBullet(
             this.position.x, this.position.z,
-            Math.sin(angle) * atk.speed,
-            Math.cos(angle) * atk.speed
+            Math.sin(angle) * spd,
+            Math.cos(angle) * spd
           );
         }
         break;
@@ -218,8 +220,8 @@ export class Enemy {
           const baseAngle = Math.atan2(dir.x, dir.z) + spreadAngle;
           bulletManager.spawnEnemyBullet(
             this.position.x, this.position.z,
-            Math.sin(baseAngle) * atk.speed,
-            Math.cos(baseAngle) * atk.speed
+            Math.sin(baseAngle) * spd,
+            Math.cos(baseAngle) * spd
           );
         }
         break;
@@ -230,11 +232,11 @@ export class Enemy {
           const offset = THREE.MathUtils.degToRad(r * 10);
           for (let i = 0; i < atk.bullets; i++) {
             const angle = offset + (Math.PI * 2 * i) / atk.bullets;
-            const spd = atk.speed * (0.8 + r * 0.1);
+            const fspd = spd * (0.8 + r * 0.1);
             bulletManager.spawnEnemyBullet(
               this.position.x, this.position.z,
-              Math.sin(angle) * spd,
-              Math.cos(angle) * spd
+              Math.sin(angle) * fspd,
+              Math.cos(angle) * fspd
             );
           }
         }
@@ -245,14 +247,14 @@ export class Enemy {
         for (let i = 0; i < atk.bullets; i++) {
           // Wider spread for silos and cruisers
           const spreadWidth = atk.bullets > 1 ? 2.5 : 0;
-          const spread = (i - (atk.bullets - 1) / 2) * (spreadWidth / Math.max(1, atk.bullets - 1));
+          const mSpread = (i - (atk.bullets - 1) / 2) * (spreadWidth / Math.max(1, atk.bullets - 1));
           const spawnPos = this.position.clone();
-          spawnPos.x += spread;
+          spawnPos.x += mSpread;
           
           missileManager.spawnMissile(
             spawnPos,
             dir.clone(),
-            atk.speed || 5, // atk.speed for missile is usually 5
+            (atk.speed || 5) * difficultySpeedMult,
             20 // Missile HP
           );
         }

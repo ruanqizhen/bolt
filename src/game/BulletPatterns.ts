@@ -6,12 +6,16 @@ import { BulletManager } from './Bullet';
  * Used by bosses and special enemies for complex attack patterns.
  */
 export class BulletPatterns {
+  /** Difficulty-driven speed multiplier. Set externally by Level each frame. */
+  public speedMult = 1.0;
+
   constructor(private bulletManager: BulletManager) {}
 
   /** Single aimed shot at target */
   spawnSniperShot(origin: THREE.Vector3, target: THREE.Vector3, speed = 12): void {
+    const s = speed * this.speedMult;
     const dir = new THREE.Vector3().subVectors(target, origin).normalize();
-    this.bulletManager.spawnEnemyBullet(origin.x, origin.z, dir.x * speed, dir.z * speed);
+    this.bulletManager.spawnEnemyBullet(origin.x, origin.z, dir.x * s, dir.z * s);
   }
 
   /** Fan spread from origin aimed at target */
