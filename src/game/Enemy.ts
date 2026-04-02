@@ -58,6 +58,9 @@ export class Enemy {
   private hitFlashTimer = 0;
   private bobPhase = Math.random() * Math.PI * 2;
 
+  private static readonly TEMP_VEC_DIR = new THREE.Vector3();
+  private static readonly TEMP_VEC_POS = new THREE.Vector3();
+
   constructor(config: EnemyConfig) {
     this.config = config;
     this.hp = config.hp;
@@ -144,7 +147,7 @@ export class Enemy {
 
     const atk = this.config.attack;
     const spd = atk.speed * difficultySpeedMult;
-    const dir = new THREE.Vector3().subVectors(targetPos, this.position).normalize();
+    const dir = Enemy.TEMP_VEC_DIR.subVectors(targetPos, this.position).normalize();
 
     switch (atk.type) {
       case 'straight':
@@ -248,12 +251,13 @@ export class Enemy {
           // Wider spread for silos and cruisers
           const spreadWidth = atk.bullets > 1 ? 2.5 : 0;
           const mSpread = (i - (atk.bullets - 1) / 2) * (spreadWidth / Math.max(1, atk.bullets - 1));
-          const spawnPos = this.position.clone();
+          
+          const spawnPos = Enemy.TEMP_VEC_POS.copy(this.position);
           spawnPos.x += mSpread;
           
           missileManager.spawnMissile(
             spawnPos,
-            dir.clone(),
+            dir, // Pass directly (normalized direction)
             (atk.speed || 5) * difficultySpeedMult,
             20 // Missile HP
           );

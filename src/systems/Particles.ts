@@ -184,6 +184,7 @@ export class ParticleSystem {
   private dummy = new THREE.Object3D();
   private colorAttr: THREE.InstancedBufferAttribute;
   private static readonly MAX_PARTICLES = 4000;
+  private static readonly TEMP_VEC = new THREE.Vector3();
   private particleTexture: THREE.CanvasTexture;
 
   constructor(scene: THREE.Scene) {
@@ -366,7 +367,10 @@ export class ParticleSystem {
     for (const p of this.particles) {
       if (!p.active) continue;
 
-      p.position.add(p.velocity.clone().multiplyScalar(deltaTime));
+      p.position.x += p.velocity.x * deltaTime;
+      p.position.y += p.velocity.y * deltaTime;
+      p.position.z += p.velocity.z * deltaTime;
+      
       p.velocity.y += -3 * deltaTime; // Global gravity
       p.life -= deltaTime;
       p.rotation += p.rotationSpeed * deltaTime;
@@ -381,11 +385,13 @@ export class ParticleSystem {
       this.dummy.position.copy(p.position);
       // Billboard: face the camera (rotation around Z for top-down view)
       this.dummy.rotation.set(Math.PI / 2, 0, p.rotation);
-      this.dummy.lookAt(
+      
+      ParticleSystem.TEMP_VEC.set(
         p.position.x,
         p.position.y + 1,
         p.position.z
       );
+      this.dummy.lookAt(ParticleSystem.TEMP_VEC);
       this.dummy.scale.set(p.size * alpha, p.size * alpha, p.size * alpha);
       this.dummy.updateMatrix();
 

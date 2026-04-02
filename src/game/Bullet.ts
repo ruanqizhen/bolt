@@ -47,6 +47,7 @@ export class BulletManager {
   private enemyBulletMesh: THREE.InstancedMesh;
   private enemyGlowMesh: THREE.InstancedMesh;
   private dummy = new THREE.Object3D();
+  private static readonly TEMP_VEC = new THREE.Vector3();
 
   private static readonly PLAYER_POOL_SIZE = 500;
   private static readonly ENEMY_POOL_SIZE = 1500;
@@ -213,8 +214,12 @@ export class BulletManager {
     this.playerPool.forEach((bullet) => {
       this.dummy.position.copy(bullet.position);
       // Align bullet rotation to match velocity vector
-      const target = bullet.position.clone().add(bullet.velocity);
-      this.dummy.lookAt(target);
+      BulletManager.TEMP_VEC.set(
+        bullet.position.x + bullet.velocity.x,
+        bullet.position.y + bullet.velocity.y,
+        bullet.position.z + bullet.velocity.z
+      );
+      this.dummy.lookAt(BulletManager.TEMP_VEC);
       this.dummy.updateMatrix();
       
       if (bullet.type === 0) {
@@ -237,7 +242,12 @@ export class BulletManager {
     let eIdx = 0;
     this.enemyPool.forEach((bullet) => {
       this.dummy.position.copy(bullet.position);
-      this.dummy.lookAt(bullet.position.clone().add(bullet.velocity));
+      BulletManager.TEMP_VEC.set(
+        bullet.position.x + bullet.velocity.x,
+        bullet.position.y + bullet.velocity.y,
+        bullet.position.z + bullet.velocity.z
+      );
+      this.dummy.lookAt(BulletManager.TEMP_VEC);
       this.dummy.updateMatrix();
       this.enemyBulletMesh.setMatrixAt(eIdx, this.dummy.matrix);
       this.enemyGlowMesh.setMatrixAt(eIdx, this.dummy.matrix);
@@ -273,7 +283,9 @@ export class BulletManager {
 
   private updatePool(pool: Pool<BulletData>, deltaTime: number): void {
     pool.forEach((bullet) => {
-      bullet.position.add(bullet.velocity.clone().multiplyScalar(deltaTime));
+      bullet.position.x += bullet.velocity.x * deltaTime;
+      bullet.position.y += bullet.velocity.y * deltaTime;
+      bullet.position.z += bullet.velocity.z * deltaTime;
       bullet.age += deltaTime;
 
       // Recycle if out of bounds or expired
@@ -355,6 +367,9 @@ class HomingBeamVisual {
   public age = 0;
   public active = false;
   private static readonly LIFETIME = 0.2; // very short flash
+  private static readonly TEMP_VEC_A = new THREE.Vector3();
+  private static readonly TEMP_VEC_B = new THREE.Vector3();
+  private static readonly TEMP_VEC_C = new THREE.Vector3();
 
   constructor() {
     const mat = new THREE.MeshBasicMaterial({
@@ -376,16 +391,20 @@ class HomingBeamVisual {
     this.mesh.visible = true;
 
     // Calculate a control point to make the curve flex outward
-    const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-    const dir = new THREE.Vector3().subVectors(end, start).normalize();
+    const mid = HomingBeamVisual.TEMP_VEC_A.addVectors(start, end).multiplyScalar(0.5);
+    const dir = HomingBeamVisual.TEMP_VEC_B.subVectors(end, start).normalize();
     const dist = start.distanceTo(end);
 
     // Perpendicular vector for the bow effect
-    const perp = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(dist * 0.4);
+    const perp = HomingBeamVisual.TEMP_VEC_C.set(-dir.z, 0, dir.x).multiplyScalar(dist * 0.4);
     if (Math.random() > 0.5) perp.negate();
 
     const control = mid.add(perp);
-    const curve = new THREE.QuadraticBezierCurve3(start, control, end);
+    const curve = new THREE.QuadraticBezierCurve3(
+      start.clone(), 
+      control.clone(), 
+      end.clone()
+    );
 
     // Create new geometry and properly dispose of old one
     const oldGeom = this.mesh.geometry;
