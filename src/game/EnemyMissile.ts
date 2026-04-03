@@ -9,6 +9,7 @@ import { ParticleSystem } from '../systems/Particles';
  */
 export class EnemyMissile implements Poolable {
   public active = false;
+  public poolIndex = -1;
   public position = new THREE.Vector3();
   public velocity = new THREE.Vector3();
   public rotation = new THREE.Quaternion();

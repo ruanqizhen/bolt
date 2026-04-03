@@ -11,6 +11,7 @@ export class BulletData implements Poolable {
   damage = 10;
   lifetime = 5; // seconds
   age = 0;
+  poolIndex = -1;
   /** 'player' or 'enemy' */
   owner: 'player' | 'enemy' = 'player';
   /** Visual type: 0=vulcan, 1=laser, 2=homing (if projectile) */

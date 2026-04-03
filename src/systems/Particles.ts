@@ -38,6 +38,7 @@ interface Particle {
   color: THREE.Color;
   size: number;
   active: boolean;
+  poolIndex: number;
   rotation: number;
   rotationSpeed: number;
 }
@@ -225,6 +226,7 @@ export class ParticleSystem {
         color: new THREE.Color(),
         size: 0.1,
         active: false,
+        poolIndex: -1,
         rotation: 0,
         rotationSpeed: 0,
       });
