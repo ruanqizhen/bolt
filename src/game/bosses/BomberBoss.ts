@@ -7,7 +7,7 @@ import { TextureManager } from '../../systems/TextureManager';
 
 /**
  * BomberBoss — Level 2 Boss: Giant Transforming Bomber
- * HP: 2000, transforms between bomber and assault modes
+ * HP: 4000, transforms between bomber and assault modes
  * Phase 1 (100%-60%): Bomber mode — carpet bombs + homing missiles
  * Phase 2 (60%-25%): Assault mode — rapid fan + rotating ring
  * Phase 3 (25%-0%): Berserk — all attacks combined
@@ -18,7 +18,7 @@ export class BomberBoss extends Boss {
   private carpetDir = 1;
 
   constructor(bulletManager: BulletManager, particles: ParticleSystem, gameScene: GameScene) {
-    super(2000, 20000, -8, bulletManager, particles, gameScene);
+    super(4000, 20000, -8, bulletManager, particles, gameScene);
     this.createVisuals();
     this.setupPhases();
   }

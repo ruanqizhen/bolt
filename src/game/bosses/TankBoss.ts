@@ -7,7 +7,7 @@ import { TextureManager } from '../../systems/TextureManager';
 
 /**
  * TankBoss — Level 1 Boss: Giant Dual-Cannon Tank
- * HP: 1200, 40% screen width
+ * HP: 2400, 40% screen width
  * Phase 1 (100%-50%): dual fan + rotating ring
  * Phase 2 (50%-0%): sniper shots + wave bullets
  */
@@ -15,7 +15,7 @@ export class TankBoss extends Boss {
   private rotAngle = 0;
 
   constructor(bulletManager: BulletManager, particles: ParticleSystem, gameScene: GameScene) {
-    super(1200, 10000, -8, bulletManager, particles, gameScene);
+    super(2400, 10000, -8, bulletManager, particles, gameScene);
     this.createVisuals();
     this.setupPhases();
   }

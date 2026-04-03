@@ -7,7 +7,7 @@ import { TextureManager } from '../../systems/TextureManager';
 
 /**
  * CarrierBoss — Level 3 Boss: Giant Aircraft Carrier
- * HP: 3000, with destructible sub-targets (4 AA turrets + 2 missile launchers)
+ * HP: 6000, with destructible sub-targets (4 AA turrets + 2 missile launchers)
  * Phase 1 (100%-50%): Sub-targets active, radial + fan attacks
  * Phase 2 (50%-0%): Core exposed, flower patterns + sniper barrage
  */
@@ -15,7 +15,7 @@ export class CarrierBoss extends Boss {
   private rotAngle = 0;
 
   constructor(bulletManager: BulletManager, particles: ParticleSystem, gameScene: GameScene) {
-    super(3000, 50000, -9, bulletManager, particles, gameScene);
+    super(6000, 50000, -9, bulletManager, particles, gameScene);
     this.createVisuals();
     this.setupPhases();
   }

@@ -25,6 +25,28 @@ export class BulletData implements Poolable {
     this.age = 0;
     this.owner = 'player';
     this.type = 0;
+    this.poolIndex = -1;
+  }
+}
+
+/**
+ * HomingBeamData — Data for homing laser beams.
+ * Rendered via InstancedMesh and custom Bezier shader.
+ */
+export class HomingBeamData implements Poolable {
+  active = false;
+  poolIndex = -1;
+  age = 0;
+  lifetime = 0.22;
+  
+  start = new THREE.Vector3();
+  control = new THREE.Vector3();
+  end = new THREE.Vector3();
+  
+  reset(): void {
+    this.active = false;
+    this.poolIndex = -1;
+    this.age = 0;
   }
 }
 
@@ -35,20 +57,26 @@ export class BulletData implements Poolable {
 export class BulletManager {
   private playerPool: Pool<BulletData>;
   private enemyPool: Pool<BulletData>;
+  private homingPool: Pool<HomingBeamData>;
 
-  // Homing beams (visual only)
-  private homingBeams: HomingBeamVisual[] = [];
-  private static readonly MAX_HOMING_BEAMS = 20;
-
-  // InstancedMeshes for rendering different bullet types
+  // InstancedMeshes for rendering
   private vulcanMesh: THREE.InstancedMesh;
   private vulcanGlowMesh: THREE.InstancedMesh;
   private laserMesh: THREE.InstancedMesh;
   private laserGlowMesh: THREE.InstancedMesh;
   private enemyBulletMesh: THREE.InstancedMesh;
   private enemyGlowMesh: THREE.InstancedMesh;
+  
+  private homingMesh: THREE.InstancedMesh;
+  private homingStartAttr: THREE.InstancedBufferAttribute;
+  private homingControlAttr: THREE.InstancedBufferAttribute;
+  private homingEndAttr: THREE.InstancedBufferAttribute;
+  private homingAlphaAttr: THREE.InstancedBufferAttribute;
+
   private dummy = new THREE.Object3D();
   private static readonly TEMP_VEC = new THREE.Vector3();
+  private static readonly TEMP_VEC_B = new THREE.Vector3();
+  private static readonly TEMP_VEC_C = new THREE.Vector3();
 
   private static readonly PLAYER_POOL_SIZE = 500;
   private static readonly ENEMY_POOL_SIZE = 1500;
@@ -67,13 +95,64 @@ export class BulletManager {
       () => new BulletData(),
       BulletManager.ENEMY_POOL_SIZE
     );
+    this.homingPool = new Pool<HomingBeamData>(
+      () => new HomingBeamData(),
+      20 // MAX_HOMING_BEAMS
+    );
 
-    // Initialize homing beam visuals
-    for (let i = 0; i < BulletManager.MAX_HOMING_BEAMS; i++) {
-      const beam = new HomingBeamVisual();
-      this.homingBeams.push(beam);
-      scene.add(beam.mesh);
-    }
+    // Initialize homing beam renderer (Bezier Shader + InstancedMesh)
+    const hGeom = new THREE.PlaneGeometry(1, 1, 1, 16);
+    const hMat = new THREE.ShaderMaterial({
+      uniforms: {},
+      vertexShader: `
+        attribute vec3 iStart;
+        attribute vec3 iControl;
+        attribute vec3 iEnd;
+        attribute float iAlpha;
+        varying float vAlpha;
+        varying float vProgress;
+        void main() {
+          float t = uv.y; 
+          vProgress = t;
+          vAlpha = iAlpha;
+          // Bezier P(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2
+          vec3 pos = (1.0-t)*(1.0-t)*iStart + 2.0*(1.0-t)*t*iControl + t*t*iEnd;
+          // Tangent P'(t) = 2(1-t)(P1-P0) + 2t(P2-P1)
+          vec3 tangent = normalize(2.0*(1.0-t)*(iControl - iStart) + 2.0*t*(iEnd - iControl));
+          vec3 normal = vec3(-tangent.z, 0.0, tangent.x);
+          pos += normal * (uv.x - 0.5) * 0.4; // thickness
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying float vAlpha;
+        varying float vProgress;
+        void main() {
+          float glow = sin(vProgress * 3.14159);
+          vec3 col = vec3(0.8, 0.2, 1.0) * vAlpha * glow * 2.0;
+          gl_FragColor = vec4(col, vAlpha * glow);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    this.homingMesh = new THREE.InstancedMesh(hGeom, hMat, 20);
+    this.homingMesh.frustumCulled = false;
+    this.homingMesh.layers.enable(1);
+    
+    this.homingStartAttr = new THREE.InstancedBufferAttribute(new Float32Array(20 * 3), 3);
+    this.homingControlAttr = new THREE.InstancedBufferAttribute(new Float32Array(20 * 3), 3);
+    this.homingEndAttr = new THREE.InstancedBufferAttribute(new Float32Array(20 * 3), 3);
+    this.homingAlphaAttr = new THREE.InstancedBufferAttribute(new Float32Array(20), 1);
+    
+    hGeom.setAttribute('iStart', this.homingStartAttr);
+    hGeom.setAttribute('iControl', this.homingControlAttr);
+    hGeom.setAttribute('iEnd', this.homingEndAttr);
+    hGeom.setAttribute('iAlpha', this.homingAlphaAttr);
+    
+    scene.add(this.homingMesh);
 
     // Vulcan bullets — hot glowing tracer rounds
     const vGeom = new THREE.PlaneGeometry(0.12, 0.5);
@@ -206,9 +285,32 @@ export class BulletManager {
     this.updatePool(this.playerPool, deltaTime);
     this.updatePool(this.enemyPool, deltaTime);
     
-    for (const beam of this.homingBeams) {
-      beam.update(deltaTime);
+    // Update homing beams
+    let hIdx = 0;
+    this.homingPool.forEach((beam) => {
+      beam.age += deltaTime;
+      if (beam.age >= beam.lifetime) {
+        this.homingPool.release(beam);
+        return;
+      }
+      
+      const alpha = 1.0 - (beam.age / beam.lifetime);
+      this.homingStartAttr.setXYZ(hIdx, beam.start.x, beam.start.y, beam.start.z);
+      this.homingControlAttr.setXYZ(hIdx, beam.control.x, beam.control.y, beam.control.z);
+      this.homingEndAttr.setXYZ(hIdx, beam.end.x, beam.end.y, beam.end.z);
+      this.homingAlphaAttr.setX(hIdx, alpha);
+      hIdx++;
+    });
+    
+    // Hide unused homing instances
+    for (let i = hIdx; i < 20; i++) {
+      this.homingAlphaAttr.setX(i, 0);
     }
+    this.homingMesh.count = hIdx;
+    this.homingStartAttr.needsUpdate = true;
+    this.homingControlAttr.needsUpdate = true;
+    this.homingEndAttr.needsUpdate = true;
+    this.homingAlphaAttr.needsUpdate = true;
     
     // Separate player bullets by type for rendering
     let vIdx = 0, lIdx = 0;
@@ -276,10 +378,23 @@ export class BulletManager {
    * Draw a homing laser beam connecting two points.
    */
   drawHomingBeam(start: THREE.Vector3, end: THREE.Vector3): void {
-    const beam = this.homingBeams.find((b) => !b.active);
-    if (beam) {
-      beam.fire(start, end);
-    }
+    const beam = this.homingPool.acquire();
+    if (!beam) return;
+
+    beam.start.copy(start);
+    beam.end.copy(end);
+    beam.age = 0;
+
+    // Calculate a control point to make the curve flex outward
+    const mid = BulletManager.TEMP_VEC.addVectors(start, end).multiplyScalar(0.5);
+    const dir = BulletManager.TEMP_VEC_B.subVectors(end, start).normalize();
+    const dist = start.distanceTo(end);
+
+    // Perpendicular vector for the bow effect
+    const perp = BulletManager.TEMP_VEC_C.set(-dir.z, 0, dir.x).multiplyScalar(dist * 0.4);
+    if (Math.random() > 0.5) perp.negate();
+
+    beam.control.copy(mid.add(perp));
   }
 
   private updatePool(pool: Pool<BulletData>, deltaTime: number): void {
@@ -354,81 +469,10 @@ export class BulletManager {
     this.enemyGlowMesh.geometry.dispose();
     (this.enemyGlowMesh.material as THREE.Material).dispose();
     
-    for (const beam of this.homingBeams) {
-      beam.dispose();
-    }
+    this.homingMesh.geometry.dispose();
+    (this.homingMesh.material as THREE.Material).dispose();
   }
 }
 
-/**
- * HomingBeamVisual — Manages a single curved beam rendered as a TubeGeometry.
- */
-class HomingBeamVisual {
-  public mesh: THREE.Mesh;
-  public age = 0;
-  public active = false;
-  private static readonly LIFETIME = 0.2; // very short flash
-  private static readonly TEMP_VEC_A = new THREE.Vector3();
-  private static readonly TEMP_VEC_B = new THREE.Vector3();
-  private static readonly TEMP_VEC_C = new THREE.Vector3();
+// Deprecated HomingBeamVisual class removed for performance optimization.
 
-  constructor() {
-    const mat = new THREE.MeshBasicMaterial({
-      color: 0xcc33ff, // purple-red
-      transparent: true,
-      opacity: 0.8,
-      blending: THREE.AdditiveBlending,
-      side: THREE.DoubleSide
-    });
-    // Start with a small dummy geometry
-    const geom = new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0.1)), 2, 0.1, 4, false);
-    this.mesh = new THREE.Mesh(geom, mat);
-    this.mesh.visible = false;
-  }
-
-  fire(start: THREE.Vector3, end: THREE.Vector3): void {
-    this.active = true;
-    this.age = 0;
-    this.mesh.visible = true;
-
-    // Calculate a control point to make the curve flex outward
-    const mid = HomingBeamVisual.TEMP_VEC_A.addVectors(start, end).multiplyScalar(0.5);
-    const dir = HomingBeamVisual.TEMP_VEC_B.subVectors(end, start).normalize();
-    const dist = start.distanceTo(end);
-
-    // Perpendicular vector for the bow effect
-    const perp = HomingBeamVisual.TEMP_VEC_C.set(-dir.z, 0, dir.x).multiplyScalar(dist * 0.4);
-    if (Math.random() > 0.5) perp.negate();
-
-    const control = mid.add(perp);
-    const curve = new THREE.QuadraticBezierCurve3(
-      start.clone(), 
-      control.clone(), 
-      end.clone()
-    );
-
-    // Create new geometry and properly dispose of old one
-    const oldGeom = this.mesh.geometry;
-    const geom = new THREE.TubeGeometry(curve, 12, 0.15, 6, false);
-    this.mesh.geometry = geom;
-    oldGeom.dispose(); // Dispose old geometry after assignment
-
-    (this.mesh.material as THREE.MeshBasicMaterial).opacity = 0.8;
-  }
-
-  update(deltaTime: number): void {
-    if (!this.active) return;
-    this.age += deltaTime;
-    if (this.age > HomingBeamVisual.LIFETIME) {
-      this.active = false;
-      this.mesh.visible = false;
-    } else {
-      (this.mesh.material as THREE.MeshBasicMaterial).opacity = 0.8 * (1 - this.age / HomingBeamVisual.LIFETIME);
-    }
-  }
-  
-  dispose(): void {
-    this.mesh.geometry.dispose();
-    (this.mesh.material as THREE.Material).dispose();
-  }
-}
