@@ -106,8 +106,14 @@ export class Pool<T extends Poolable> {
   }
 
   releaseAll(): void {
-    while (this.activeItems.length > 0) {
-      this.release(this.activeItems[0]);
+    // Robust clear: reset all currently active items and move to inactive
+    for (let i = 0; i < this.activeItems.length; i++) {
+      const item = this.activeItems[i];
+      item.active = false;
+      item.poolIndex = -1;
+      item.reset();
+      this.inactiveItems.push(item);
     }
+    this.activeItems.length = 0;
   }
 }

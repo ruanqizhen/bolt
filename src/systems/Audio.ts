@@ -114,6 +114,8 @@ export class AudioManager {
   };
 
   init(): void {
+    if (this.ctx) return; // Only init once
+
     try {
       this.ctx = new AudioContext();
       this.masterGain = this.ctx.createGain();
@@ -556,8 +558,14 @@ export class AudioManager {
    * Start background music with fade-in
    */
   startBGM(bgmId: string = 'stage1'): void {
-    if (!this.ctx || !this.bgmGain || this.muted) return;
+    if (!this.ctx) this.init();
+    if (!this.ctx || !this.bgmGain) return; // Guard for null
     this.ensureContext();
+
+    if (this.bgmFadeTimer !== null) {
+      clearTimeout(this.bgmFadeTimer);
+      this.bgmFadeTimer = null;
+    }
 
     const config = this.bgmPresets[bgmId];
     if (!config) return;
@@ -565,17 +573,12 @@ export class AudioManager {
     // If same BGM is already playing, do nothing
     if (this.bgmPlaying && this.currentBgmId === bgmId) return;
 
-    // Stop current BGM with fade-out
-    if (this.bgmPlaying) {
-      this.fadeOutBGM(0.5);
-    }
-
     this.currentBgmId = bgmId;
     this.bgmPlaying = true;
 
     // Fade in
     this.bgmGain.gain.cancelScheduledValues(this.ctx.currentTime);
-    this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
+    this.bgmGain.gain.setValueAtTime(this.bgmGain.gain.value, this.ctx.currentTime);
     this.bgmGain.gain.linearRampToValueAtTime(config.volume, this.ctx.currentTime + 1.0);
 
     const playLoop = () => {
@@ -619,6 +622,10 @@ export class AudioManager {
    * Stop background music with fade-out
    */
   stopBGM(fadeDuration = 0.5): void {
+    if (this.bgmFadeTimer !== null) {
+      clearTimeout(this.bgmFadeTimer);
+      this.bgmFadeTimer = null;
+    }
     if (!this.bgmPlaying || !this.bgmGain) return;
 
     this.fadeOutBGM(fadeDuration);
@@ -628,6 +635,11 @@ export class AudioManager {
 
   private fadeOutBGM(duration: number): void {
     if (!this.ctx || !this.bgmGain) return;
+
+    if (this.bgmFadeTimer !== null) {
+      clearTimeout(this.bgmFadeTimer);
+      this.bgmFadeTimer = null;
+    }
 
     this.bgmGain.gain.cancelScheduledValues(this.ctx.currentTime);
     this.bgmGain.gain.setValueAtTime(this.bgmGain.gain.value, this.ctx.currentTime);

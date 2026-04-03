@@ -60,6 +60,9 @@ export class Level {
   public medalSystem: MedalSystem;
   private missileManager: MissileManager;
 
+  // Pre-allocated hitboxes to avoid per-frame allocations
+  private hitboxPool: EnemyHitbox[] = [];
+
   // Difficulty
   public difficultyManager: DifficultyManager;
 
@@ -89,6 +92,16 @@ export class Level {
     this.medalSystem = new MedalSystem();
     this.difficultyManager = new DifficultyManager();
     this.missileManager = new MissileManager(scene, particles);
+
+    // Pre-allocate hitboxes (enemies + 1 for boss)
+    for (let i = 0; i < Level.ENEMY_POOL_SIZE + 1; i++) {
+      this.hitboxPool.push({
+        position: new THREE.Vector3(),
+        radius: 0,
+        alive: false,
+        inView: false
+      });
+    }
 
     // Build config lookup
     for (const cfg of enemyConfigs as EnemyConfig[]) {
@@ -243,28 +256,40 @@ export class Level {
       }
     }
 
-    // --- Collision detection ---
-    const enemyHitboxes: EnemyHitbox[] = this.enemies.map(e => ({
-      position: e.position,
-      radius: e.config.size * 0.6,
-      alive: e.alive,
-      inView: e.alive ? e.isInPlayArea() : false,
-    }));
+    // --- Collision detection (using pre-allocated hitboxes) ---
+    let hIdx = 0;
+    for (let i = 0; i < this.enemies.length; i++) {
+      const e = this.enemies[i];
+      const h = this.hitboxPool[hIdx++];
+      h.position.copy(e.position);
+      h.radius = e.config.size * 0.6;
+      h.alive = e.alive;
+      h.inView = e.alive ? e.isInPlayArea() : false;
+    }
 
-    // Add boss hitbox
+    // Add boss hitbox at the end of the pool
     if (this.currentBoss?.alive && this.currentBoss.active) {
-      enemyHitboxes.push({
-        position: this.currentBoss.position,
-        radius: 2.5,
-        alive: true,
-      });
+      const h = this.hitboxPool[hIdx++];
+      h.position.copy(this.currentBoss.position);
+      h.radius = 2.5;
+      h.alive = true;
+      h.inView = true;
+    }
+
+    // Temporary view of the active hitboxes
+    const activeHitboxes = this.hitboxPool;
+    const activeHitboxCount = hIdx;
+
+    // Mark remaining pool items as inactive to be safe
+    for (let i = activeHitboxCount; i < this.hitboxPool.length; i++) {
+      this.hitboxPool[i].alive = false;
     }
 
     const result = collision.check(
       player,
       this.bulletManager.getActivePlayerBullets(),
       this.bulletManager.getActiveEnemyBullets(),
-      enemyHitboxes,
+      activeHitboxes,
       this.missileManager.getActiveMissiles()
     );
 
