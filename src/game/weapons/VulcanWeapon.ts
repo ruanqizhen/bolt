@@ -11,7 +11,7 @@ export class VulcanWeapon implements Weapon {
   level = 1;
 
   private cooldown = 0;
-  private static readonly FIRE_RATE = 0.10; // seconds between shots (increased by 30%)
+  private static readonly FIRE_RATE = 0.12; // seconds between shots (increased for balance)
   private static readonly BULLET_SPEED = 25;
   private static readonly DAMAGE = 10;
 

@@ -480,7 +480,7 @@ export class Level {
 
       if (event.aggressive) {
         // Force fire almost immediately after entering
-        enemy.fireTimer = Math.min(0.1, config.attack.cooldown * 0.1);
+        enemy.fireTimer = Math.min(0.05, config.attack.cooldown * 0.05);
       }
     }
   }

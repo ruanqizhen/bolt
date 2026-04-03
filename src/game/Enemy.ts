@@ -327,7 +327,7 @@ export class Enemy {
     this.score = config.score;
     this.alive = true;
     this.mesh.visible = true;
-    this.fireTimer = config.attack.cooldown * (0.5 + Math.random() * 0.5);
+    this.fireTimer = config.attack.cooldown * (0.05 + Math.random() * 0.1); // Reduced initial delay
     this.aiTimer = 0;
     this.aiPhase = 0;
     this.sineOffset = Math.random() * Math.PI * 2;
